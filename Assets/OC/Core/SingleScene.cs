@@ -216,6 +216,8 @@ namespace OC
             IsFinish = false;
 
             curBakeVolume = 0;
+
+            tree = null;
         }
 
         public SingleScene(string path, string name, Index index, int tileDimension, byte[] data, World owner):
@@ -229,8 +231,7 @@ namespace OC
             Path = path;
             Name = name;
 
-            renderableSet = new RenderableObjectSet(this);
-            tree = new BoundsOctree<Cell>(10000, Vector3.zero, 8 * 2/*cellSize*/, 1.25f);
+            renderableSet = new RenderableObjectSet(this);            
 
             treeMesh = null;
 
@@ -326,9 +327,14 @@ namespace OC
             if(IsFinish)
             {
                 Cell.FinishToGetRenderableModels();
-                EditorUtility.ClearProgressBar();
+                
+                
                 EditorApplication.update -= ComputePVS;
                 RestoreCamera();
+
+                SaveData();
+
+                EditorUtility.ClearProgressBar();
 
                 CopyOCDataTo(tempPath);
             }
@@ -971,6 +977,39 @@ namespace OC
             EditorSceneManager.SaveScene(scene);
         }
 
+        public bool SaveData()
+        {
+            bool cancelled = false;
+            using (var writer = new OCDataWriter(GetOCDataFilePath()))
+            {
+                writer.BeginBlock();
+
+                WriteNeighborMaxGameObjId(writer);
+
+                writer.Write(_maxGameObjectIDCount);
+
+                writer.Write(volumelList.Count);
+
+                for (int i = 0; i < volumelList.Count; ++i)
+                {
+                    if (Progress("保存PVS数据", String.Format("Volume {0}/{1} ...", i + 1, volumelList.Count),
+                        ((float)i + 1) / volumelList.Count))
+                    {
+                        cancelled = true;
+                        break;
+                    }
+
+                    var volume = volumelList[i];
+                    volume.Save(writer);
+                }
+
+                writer.EndBlock();
+
+                //BakeStat.CompressRatio = writer.CompressRatio;
+                return !cancelled;
+            }
+        }
+
 #endif
 
         public static string GetOCDataFileName(string sceneName)
@@ -1006,6 +1045,7 @@ namespace OC
         {
             using (var ocReader = new OCDataReader(ocData))
             {
+                tree = new BoundsOctree<Cell>(10000, Vector3.zero, 8 * 2/*cellSize*/, 1.25f);
                 LoadBlock(ocReader, blockIndex);
                 GerneraterRenderableObjs();
             }
@@ -1016,6 +1056,7 @@ namespace OC
         {
             using (var ocReader = new OCDataReader(GetOCDataFilePath()))
             {
+                tree = new BoundsOctree<Cell>(10000, Vector3.zero, 8 * 2/*cellSize*/, 1.25f);
                 LoadBlock(ocReader, 0);
                 GerneraterRenderableObjs();
             }

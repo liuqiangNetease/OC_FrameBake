@@ -65,11 +65,13 @@ namespace OC
         public void AddCell(Cell cell)
         {
             cellList.Add(cell);
-            owner.tree.Add(cell, cell.aabb);
+            if(owner.tree != null)
+                owner.tree.Add(cell, cell.aabb);
             for (int i = 0; i < cell.children.Count; i++)
             {
                 Cell child = cell.children[i];
-                owner.tree.Add(child, child.aabb);
+                if (owner.tree != null)
+                    owner.tree.Add(child, child.aabb);
             }
         }
 
@@ -210,7 +212,27 @@ namespace OC
             }
         }
 
-        public IEnumerator<Cell> SaveAllCellGenerator(OCDataWriter writer, IEnumerator<Cell> cellGenerator)
+        public void Save(OCDataWriter writer)
+        {
+            writer.Write(cellSize);
+
+            writer.Write(aabb);
+
+            writer.Write(cellList.Count);
+
+            //foreach (var cell in cellList)
+            //{
+               // cell.Save(writer);
+           // }
+            for(int i= cellList.Count-1; i>=0; i--)
+            {
+                var cell = cellList[i];
+                cell.Save(writer);
+                //cellList.Remove(cell);
+            }
+        }
+
+        /*public IEnumerator<Cell> SaveAllCellGenerator(OCDataWriter writer, IEnumerator<Cell> cellGenerator)
         {
             while (cellGenerator.MoveNext())
             {
@@ -264,7 +286,7 @@ namespace OC
             writer.Position = cellCountSavePosition;
             writer.Write(cellList.Count);
             writer.Position = position;
-        }
+        }*/
     }
 
 }

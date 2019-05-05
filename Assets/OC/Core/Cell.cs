@@ -15,6 +15,11 @@ namespace OC
         {
             this.owner = owner;
         }
+
+        ~Cell()
+        {
+            Debug.Log("clear cell suc!");
+        }
         public List<Cell> children = new List<Cell>();
 
         public Cell parent = null;
@@ -368,6 +373,9 @@ namespace OC
         {
             visFlagDic = null;
             visibleModelList = null;
+            children = null;
+            parent = null;
+            
         }
     }
 }

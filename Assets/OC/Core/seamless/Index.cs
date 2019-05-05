@@ -6,18 +6,20 @@ using UnityEngine;
 
 namespace OC
 {
-//    class IndexComparer : IEqualityComparer<Index>
-//    {
-//        public bool Equals(Index x, Index y)
-//        {
-//            return x.Equals(y);
-//        }
-//
-//        public int GetHashCode(Index obj)
-//        {
-//            return obj.GetHashCode();
-//        }
-//    }
+    //    class IndexComparer : IEqualityComparer<Index>
+    //    {
+    //        public bool Equals(Index x, Index y)
+    //        {
+    //            return x.Equals(y);
+    //        }
+    //
+    //        public int GetHashCode(Index obj)
+    //        {
+    //            return obj.GetHashCode();
+    //        }
+    //    }
+
+    [Serializable]
     public struct Index: IEquatable<Index>
     {
         public static Index InValidIndex = new Index(-10, -10);

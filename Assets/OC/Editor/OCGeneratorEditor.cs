@@ -275,7 +275,7 @@ namespace OC.Editor
 
                 if (GUILayout.Button("Generate All OC Data (Stream)"))
                 {
-                    generator.BakeAll("002", 10, 8);
+                    //generator.BakeAll("002", 10, 8);
                 }
            
 

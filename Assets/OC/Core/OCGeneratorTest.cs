@@ -14,124 +14,303 @@ using UnityEngine.SceneManagement;
 
 namespace OC.Editor
 {
-    // public class SceneConfig
-    // {
-    //     public string sceneName;
-    //     public bool IsStreamScene;
-    //     public string path;
-    //     //public string SceneNamePattern;
-    //     //public string TemporaryContainer;
-    //     public int TileDimension;
-    //     public bool UseComputeShader;
-    //     public bool UseVisbileCache;
-    //     public bool ComputePerframe;
-    //     public int PerframeExecCount;
-
-    //     public bool bakeAll;
-
-    //     public List<Index> Tiles;
-
-        
-
-       
-    //     public List<Index> GetBakeTiles()
-    //     {
-    //         var tiles = Tiles;
-    //         //if (tiles == null)
-    //         if(bakeAll && IsStreamScene)
-    //         {
-    //             //bake all tiles if there is no any tile specified to bake
-    //             tiles = new List<Index>();
-    //             var dimension = TileDimension;
-    //             for (int x = 0; x < dimension; ++x)
-    //             {
-    //                 for (int y = 0; y < dimension; ++y)
-    //                 {
-    //                     tiles.Add(new Index(x, y));
-    //                 }
-    //             }
-    //         }
-
-    //         return tiles;
-    //     }
-
-        // public string GetSceneName(int x, int y)
-        // {
-        //     if (IsStreamScene)
-        //     {
-        //         return MultiScene.GetSceneName(x, y);
-        //     }
-
-        //     return SceneNamePattern;
-        // }
-
-        // public string GetOCDataFilePath()
-        // {
-        //     return System.IO.Path.Combine(TemporaryContainer, GetOCDataFileName());
-        // }
-
-        // public string GetOCDataFileName()
-        // {
-        //     string fileName;
-        //     if (IsStreamScene)
-        //     {
-        //         fileName = MultiScene.GetOCDataFileName(SceneNamePattern);
-        //     }
-        //     else
-        //     {
-        //         fileName = SingleScene.GetOCDataFileName(SceneNamePattern);
-        //     }
-
-        //     return fileName;
-        // }
-    //}
     public partial class OCGenerator
     {
-        //         private static OCMapConfig LoadOCMapConfig(string projectAssetPath, int index)
-//         {
-//             var filePath = Path.Combine(projectAssetPath, String.Format("OCGenMapConfig_{0}.xml", index));
+         public static void TestCreateScensJson()
+        {
+            var sceneList = new List<OCMapConfig>();
+            OCMapConfig config = new OCMapConfig();
+            config.MapName = "s001";
+            config.CellSize = 2;
+            config.MaxPlayerHeight = 2.5f;
+            config.MinPlayerHeight = 0;
+            config.ScreenHeight = 600;
+            config.ScreenWidth = 600;
+            config.MergeCell = true;
+            config.MergeCellWeight = 0.9f;
+            config.MergeObjectID = false;
+            config.MergeObjectSize = 1;
+            config.MergeObjectDistance = 1;
+            config.TileDimension = 8;
+            config.TileSize = 1000;
             
-//             if (!File.Exists(filePath))
-//             {
-//                 Debug.LogErrorFormat("oc gen map config file {0} does not exist, path {1} index {2}", filePath, projectAssetPath, index);
-//                 return null;
-//             }
+            config.IsStreamScene = false;
+            config.UseComputeShader = true;
+            config.UseVisbileCache = true;
+            config.SceneAssetPath = "Assets/Maps/maps/S001/Scenes";
+            config.SceneNamePattern = "S001";
+            config.TemporaryContainer = "D:\buildtemp";
+            sceneList.Add(config);
 
-//             var doc = new XmlDocument();
-//             doc.Load(filePath);
-//             var root = doc.DocumentElement;
-            
-//             var config = new OCMapConfig();
-//             config.MapName = ParseXmlNode<string>(root, "MapName");
-//             ParseOCMapConfig(root, config);
-//             return config;
-//         }
-       public string LoadJson(string path, int index)
-       {
-           string ret = null;
-           string filePath = Path.Combine(path, "sceneConfig.json");
+            config = new OCMapConfig();
+            config.MapName = "s002";
+            config.CellSize = 2;
+            config.MaxPlayerHeight = 2.5f;
+            config.MinPlayerHeight = 0;
+            config.ScreenHeight = 600;
+            config.ScreenWidth = 600;
+            config.MergeCell = true;
+            config.MergeCellWeight = 0.9f;
+            config.MergeObjectID = false;
+            config.MergeObjectSize = 1;
+            config.MergeObjectDistance = 1;
+            config.TileDimension = 8;
+            config.TileSize = 1000;
+            config.IsStreamScene = false;
+            config.UseComputeShader = true;
+            config.UseVisbileCache = true;
+            config.SceneAssetPath = "Assets/Maps/maps/S002/Scenes";
+            config.SceneNamePattern = "S002";
+            config.TemporaryContainer = "D:\buildtemp";
+            sceneList.Add(config);
+
+            config = new OCMapConfig();
+            config.MapName = "s003";
+            config.CellSize = 2;
+            config.MaxPlayerHeight = 2.5f;
+            config.MinPlayerHeight = 0;
+            config.ScreenHeight = 600;
+            config.ScreenWidth = 600;
+            config.MergeCell = true;
+            config.MergeCellWeight = 0.9f;
+            config.MergeObjectID = false;
+            config.MergeObjectSize = 1;
+            config.MergeObjectDistance = 1;
+            config.TileDimension = 8;
+            config.TileSize = 1000;
+            config.IsStreamScene = false;
+            config.UseComputeShader = true;
+            config.UseVisbileCache = true;
+            config.SceneAssetPath = "Assets/Maps/maps/S003/Scenes";
+            config.SceneNamePattern = "S003";
+            config.TemporaryContainer = "D:\buildtemp";
+            config.ComputePerframe = true;
+            config.PerframeExecCount = 1000;
+            sceneList.Add(config);
+
+            config = new OCMapConfig();
+            config.MapName = "m001";
+            config.CellSize = 2;
+            config.MaxPlayerHeight = 2.5f;
+            config.MinPlayerHeight = 0;
+            config.ScreenHeight = 600;
+            config.ScreenWidth = 600;
+            config.MergeCell = true;
+            config.MergeCellWeight = 0.9f;
+            config.MergeObjectID = false;
+            config.MergeObjectSize = 1;
+            config.MergeObjectDistance = 1;
+            config.TileDimension = 8;
+            config.TileSize = 1000;
+            config.IsStreamScene = false;
+            config.UseComputeShader = true;
+            config.UseVisbileCache = true;
+            config.SceneAssetPath = "Assets/Maps/maps/M001/Scenes";
+            config.SceneNamePattern = "M001";
+            config.TemporaryContainer = "D:\buildtemp";
+            config.ComputePerframe = true;
+            config.PerframeExecCount = 1000;
+            sceneList.Add(config);
+
+            config = new OCMapConfig();
+            config.MapName = "m002";
+            config.CellSize = 2;
+            config.MaxPlayerHeight = 2.5f;
+            config.MinPlayerHeight = 0;
+            config.ScreenHeight = 600;
+            config.ScreenWidth = 600;
+            config.MergeCell = true;
+            config.MergeCellWeight = 0.9f;
+            config.MergeObjectID = false;
+            config.MergeObjectSize = 1;
+            config.MergeObjectDistance = 1;
+            config.TileDimension = 8;
+            config.TileSize = 1000;
+            config.IsStreamScene = false;
+            config.UseComputeShader = true;
+            config.UseVisbileCache = true;
+            config.SceneAssetPath = "Assets/Maps/maps/M002/Scenes";
+            config.SceneNamePattern = "M002";
+            config.TemporaryContainer = "D:\buildtemp";
+            config.ComputePerframe = true;
+            config.PerframeExecCount = 1000;
+            sceneList.Add(config);
+
+            config = new OCMapConfig();
+            config.MapName = "m003";
+            config.CellSize = 2;
+            config.MaxPlayerHeight = 2.5f;
+            config.MinPlayerHeight = 0;
+            config.ScreenHeight = 600;
+            config.ScreenWidth = 600;
+            config.MergeCell = true;
+            config.MergeCellWeight = 0.9f;
+            config.MergeObjectID = false;
+            config.MergeObjectSize = 1;
+            config.MergeObjectDistance = 1;
+            config.TileDimension = 8;
+            config.TileSize = 1000;
+            config.IsStreamScene = false;
+            config.UseComputeShader = true;
+            config.UseVisbileCache = true;
+            config.SceneAssetPath = "Assets/Maps/maps/M003/Scenes";
+            config.SceneNamePattern = "M003";
+            config.TemporaryContainer = "D:\buildtemp";
+            config.ComputePerframe = true;
+            config.PerframeExecCount = 1000;
+            sceneList.Add(config);
+
+            config = new OCMapConfig();
+            config.MapName = "m004";
+            config.CellSize = 2;
+            config.MaxPlayerHeight = 2.5f;
+            config.MinPlayerHeight = 0;
+            config.ScreenHeight = 600;
+            config.ScreenWidth = 600;
+            config.MergeCell = true;
+            config.MergeCellWeight = 0.9f;
+            config.MergeObjectID = false;
+            config.MergeObjectSize = 1;
+            config.MergeObjectDistance = 1;
+            config.TileDimension = 8;
+            config.TileSize = 1000;
+            config.IsStreamScene = false;
+            config.UseComputeShader = true;
+            config.UseVisbileCache = true;
+            config.SceneAssetPath = "Assets/Maps/maps/M004/Scenes";
+            config.SceneNamePattern = "M004";
+            config.TemporaryContainer = "D:\buildtemp";
+            config.ComputePerframe = true;
+            config.PerframeExecCount = 1000;
+            sceneList.Add(config);
+
+            config = new OCMapConfig();
+            config.MapName = "m006";
+            config.CellSize = 2;
+            config.MaxPlayerHeight = 2.5f;
+            config.MinPlayerHeight = 0;
+            config.ScreenHeight = 600;
+            config.ScreenWidth = 600;
+            config.MergeCell = true;
+            config.MergeCellWeight = 0.9f;
+            config.MergeObjectID = false;
+            config.MergeObjectSize = 1;
+            config.MergeObjectDistance = 1;
+            config.TileDimension = 8;
+            config.TileSize = 1000;
+            config.IsStreamScene = false;
+            config.UseComputeShader = true;
+            config.UseVisbileCache = true;
+            config.SceneAssetPath = "Assets/Maps/maps/M006/Scenes";
+            config.SceneNamePattern = "M006";
+            config.TemporaryContainer = "D:\buildtemp";
+            config.ComputePerframe = true;
+            config.PerframeExecCount = 1000;
+            sceneList.Add(config);
+
+            config = new OCMapConfig();
+            config.MapName = "002";
+            config.CellSize = 2;
+            config.MaxPlayerHeight = 2.5f;
+            config.MinPlayerHeight = 0;
+            config.ScreenHeight = 600;
+            config.ScreenWidth = 600;
+            config.MergeCell = true;
+            config.MergeCellWeight = 0.9f;
+            config.MergeObjectID = false;
+            config.MergeObjectSize = 1;
+            config.MergeObjectDistance = 1;
+            config.TileDimension = 8;
+            config.TileSize = 1000;
+            config.IsStreamScene = true;
+            config.UseComputeShader = true;
+            config.UseVisbileCache = true;
+            config.SceneAssetPath = "Assets/Maps/maps/0001/Scenes";
+            config.SceneNamePattern = "002 {0}x{1}";
+            config.TemporaryContainer = "D:\buildtemp";
+            config.ComputePerframe = true;
+            config.PerframeExecCount = 1000;
+            config.TileDimension = 8;
+            config.TileSize = 10;
+            config.indices = new List<Index>();
+            /*config.indices.Add(new Index(2, 1));
+            config.indices.Add(new Index(2, 2));
+            config.indices.Add(new Index(2, 5));
+            config.indices.Add(new Index(3, 1));
+            config.indices.Add(new Index(3, 2));
+            config.indices.Add(new Index(3, 3));
+            config.indices.Add(new Index(4, 3));
+            config.indices.Add(new Index(4, 5));
+            config.indices.Add(new Index(4, 6));
+            config.indices.Add(new Index(5, 4));
+            config.indices.Add(new Index(5, 5));
+            config.indices.Add(new Index(5, 7));*/
+            for (int i = 0; i < config.TileDimension; i++)
+                for (int j = 0; j < config.TileDimension; j++)
+                    config.indices.Add(new Index(i, j));
+            sceneList.Add(config);
+
+            config = new OCMapConfig();
+            config.MapName = "TestStream";
+            config.CellSize = 2;
+            config.MaxPlayerHeight = 2.5f;
+            config.MinPlayerHeight = 0;
+            config.ScreenHeight = 600;
+            config.ScreenWidth = 600;
+            config.MergeCell = true;
+            config.MergeCellWeight = 0.9f;
+            config.MergeObjectID = false;
+            config.MergeObjectSize = 1;
+            config.MergeObjectDistance = 1;
+            config.TileDimension = 8;
+            config.TileSize = 1000;
+            config.IsStreamScene = true;
+            config.UseComputeShader = true;
+            config.UseVisbileCache = true;
+            config.SceneAssetPath = "Assets/Maps/maps/TestStream/Scenes";
+            config.SceneNamePattern = "TestStream {0}x{1}";
+            config.TemporaryContainer = "D:\buildtemp";
+            config.ComputePerframe = true;
+            config.PerframeExecCount = 1000;
+            config.TileDimension = 8;
+            config.TileSize = 10;
+            config.indices = new List<Index>();
+            for (int i = 0; i < config.TileDimension; i++)
+                for (int j = 0; j < config.TileDimension; j++)
+                    config.indices.Add(new Index(i,j));
+            sceneList.Add(config);
+
+            OCScenesConfig scenesConfig = new OCScenesConfig();
+            scenesConfig.scenesConfig = sceneList;
+
+            string jsonString = JsonUtility.ToJson(scenesConfig, true);           
+
+            File.WriteAllText("Assets/Assets/CoreRes/template/OCScenesConfig.json", jsonString);
+
+        }
+        public static string LoadJson(string path)
+        {
+            string ret = null;
           
-           if(index >=0 )
-                filePath = Path.Combine(path, string.Format("sceneConfig{0}.json", index));
-  
-            if (!File.Exists(filePath))
-             {
-                 Debug.LogErrorFormat("oc gen map config file {0} does not exist, path {1} index {2}", filePath, path, index);
-                 return ret;
-             }
 
-             var stream = File.Open(filePath, FileMode.Open);
-            ret = stream.ToString();
-           return ret;
-       }
-       public void BakeAll(string worldName, int tileSize, int tileDimension)
+            if (!File.Exists(path))
+            {
+                Debug.LogErrorFormat("oc scenes config file {0} does not exist!", path);
+                return ret;
+            }
+
+            ret = File.ReadAllText(path);
+            return ret;
+        }
+     
+       /*public void BakeAll(string worldName, int tileSize, int tileDimension)
        {
            InitConfig();
 
             var multiScene = new MultiScene(GetScenePath(), StreamSceneNamePattern, tileDimension, tileSize);
 
-            multiScene.BakeAll(tileSize, tileDimension);
-       }
+            multiScene.BakeAll();
+       }*/
         public void GenerateTestStreamScenes(string path)
         {
             // var emptyScene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
@@ -163,8 +342,7 @@ namespace OC.Editor
                 EditorSceneManager.SaveScene(scene);
             }
 
-            EditorSceneManager.SaveOpenScenes();
-            
+            EditorSceneManager.SaveOpenScenes();            
         }
     
         //工作路径 D:/trunk/develop
@@ -172,51 +350,48 @@ namespace OC.Editor
         //0 GetNode 复制OC相关的配置文件和bat脚本到相应目录 D:/trunk/oc_deploy   copy to  D:/trunk/develop
 
         //1 occonfiggen.bat 根据OCGenMapConfig.xml配置文件为每个烘焙进程生成一个对应的OC烘焙配置文件
-        public static void TestGenerateOCGenMapConfigFile()
+        public static void TestGenerateOCGenMapConfigFile(string sceneName, int processNum)
         {
-            GenerateOCGenMapConfigFile("002", true, 8);
+            GenerateOCGenMapConfigFile(sceneName, false, processNum);
             var config = LoadOCMapConfig(".\\Assets", 0);
             Debug.LogFormat("Config Is {0}", config);
         }
         //2 ocprojectgen.bat 为每个烘焙进程生成一个项目，其中大部分资源目录都是软链接到原始项目目录的
         //3 coinitgen.bat 删除需要烘焙的场景文件的全局光照信息，为场景文件中可渲染game object生成render id
-        public static void TestInitOCGeneration()
+        public static void TestInitOCGeneration(string sceneName, int tileX, int tileY)
         {
             //InitOCGeneration();
             PrintSystemInfo();
 
-            var mapName = "002";//System.Environment.GetCommandLineArgs()[1];
-            var tileX = 0;//int.Parse(System.Environment.GetCommandLineArgs()[2]);
-            var tileY = 0;// int.Parse(System.Environment.GetCommandLineArgs()[3]);
-            if (!OpenAllScenes(mapName, tileX, tileY))
+            //var mapName = "002";//System.Environment.GetCommandLineArgs()[1];
+            //var tileX = 0;//int.Parse(System.Environment.GetCommandLineArgs()[2]);
+            //var tileY = 0;// int.Parse(System.Environment.GetCommandLineArgs()[3]);
+            if (!OpenAllScenes(sceneName, tileX, tileY))
                 return;
-            
-            //ClearLightmappingData(mapName, tileX, tileY);
+
+            //ClearLightmappingData(sceneName, tileX, tileY);
             GenerateAllSceneRenderableObjectID();
         }
         //4 ocgenerate.bat 执行并行烘焙(得到pvs数据)
         public static void TestGenerateOCData()
         {
             //GenerateOCData();
-           var projectAssetPath = System.Environment.GetCommandLineArgs()[1];
-            var index = int.Parse(System.Environment.GetCommandLineArgs()[2]);
-            PrintArgs(2);
+            var projectAssetPath = ".\\Assets";// System.Environment.GetCommandLineArgs()[1];
+            var index = 0;// int.Parse(System.Environment.GetCommandLineArgs()[2]);
+            //PrintArgs(2);
 
             Debug.LogFormat("Generate OC Data Project Asset Path {0} index {1}", projectAssetPath, index);
-            var config = LoadOCMapConfig(projectAssetPath, 0);
-            if (config == null)
+            var config = LoadOCMapConfig(projectAssetPath, index);
+            if (config.MapName == string.Empty)
             {
                 Debug.LogErrorFormat("Can not get oc map config for stream scene in oc data generation, path {0} index {1}", projectAssetPath, 0);
                 ExitOnBatchMode();
                 return;
             }
-
-            //SetTestData();
-
             if (config.IsStreamScene)
             {
-                config = LoadOCMapConfig(projectAssetPath, index);
-                if (config != null)
+                //config = LoadOCMapConfig(projectAssetPath, index);
+                if (config.MapName != string.Empty)
                 {
                     GenerateOCDataForStreamScene(config);
                 }
@@ -235,6 +410,44 @@ namespace OC.Editor
                 ExitOnBatchMode();
             }
         }
+        public static void TestBakeAll()
+        {
+            //GenerateOCData();
+            var projectAssetPath = ".\\Assets";// System.Environment.GetCommandLineArgs()[1];
+            var index = 0;// int.Parse(System.Environment.GetCommandLineArgs()[2]);
+            //PrintArgs(2);
+
+            Debug.LogFormat("Generate OC Data Project Asset Path {0} index {1}", projectAssetPath, index);
+            var config = LoadOCMapConfig(projectAssetPath, index);
+            if (config.MapName == string.Empty)
+            {
+                Debug.LogErrorFormat("Can not get oc map config for stream scene in oc data generation, path {0} index {1}", projectAssetPath, 0);
+                ExitOnBatchMode();
+                return;
+            }
+            if (config.IsStreamScene)
+            {
+                //config = LoadOCMapConfig(projectAssetPath, index);
+                if (config.MapName != string.Empty)
+                {
+                    //GenerateOCDataForStreamScene(config);
+                    BakeAll(config);
+                }
+                else
+                {
+                    Debug.LogErrorFormat("Can not get oc map config for stream scene in oc data generation, path {0} index {1}", projectAssetPath, 0);
+                    ExitOnBatchMode();
+                }
+            }
+            else if (index == 0)
+            {
+                GenerateOCDataForFixedScene(config);
+            }
+            else
+            {
+                ExitOnBatchMode();
+            }
+        }
         //5 ocmerge.bat  MergeOCDarta：只在流式加载的地图中才会执行，把并行烘焙的结果合并输出
         public static void TestMergeOCDataForStreamScene()
         {
@@ -243,7 +456,7 @@ namespace OC.Editor
             //PrintArgs(1);
 
             var config = LoadOCMapConfig(projectPath, 0);
-            if (config == null)
+            if (config.MapName == string.Empty)
             {
                 Debug.LogErrorFormat("Can not get oc map config for stream scene in oc data mergence, path {0} index {1}", projectPath, 0);
                 return;

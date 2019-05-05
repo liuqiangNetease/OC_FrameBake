@@ -83,7 +83,7 @@ namespace OC.Editor
             int x = 0, y = 0;
             if (GetStreamSceneIndex(TileDimension, out x, out y))
             {
-                _multiScene.BakeOne(x, y, tileSize);
+                _multiScene.BakeOne(x, y);
                 // var contetIter = _multiScene.GetBakeContexts(x, y, StreamOCTemporaryContainer, (tileX, tileY, tile) =>
                 // {
                 //     if (tileX == x && tileY == y)

@@ -1,0 +1,758 @@
+{
+    "scenesConfig": [
+        {
+            "MapName": "s001",
+            "CellSize": 2.0,
+            "ScreenWidth": 600,
+            "ScreenHeight": 600,
+            "MaxPlayerHeight": 2.5,
+            "MinPlayerHeight": 0.0,
+            "SceneAssetPath": "Assets/Maps/maps/S001/Scenes",
+            "SceneNamePattern": "S001",
+            "TemporaryContainer": "D:\buildtemp",
+            "MergeCell": true,
+            "MergeCellWeight": 0.8999999761581421,
+            "MergeObjectID": false,
+            "MergeObjectSize": 1.0,
+            "MergeObjectDistance": 1.0,
+            "IsStreamScene": false,
+            "UseComputeShader": true,
+            "UseVisbileCache": true,
+            "ComputePerframe": false,
+            "PerframeExecCount": 0,
+            "TileDimension": 8,
+            "TileSize": 1000,
+            "indices": []
+        },
+        {
+            "MapName": "s002",
+            "CellSize": 2.0,
+            "ScreenWidth": 600,
+            "ScreenHeight": 600,
+            "MaxPlayerHeight": 2.5,
+            "MinPlayerHeight": 0.0,
+            "SceneAssetPath": "Assets/Maps/maps/S002/Scenes",
+            "SceneNamePattern": "S002",
+            "TemporaryContainer": "D:\buildtemp",
+            "MergeCell": true,
+            "MergeCellWeight": 0.8999999761581421,
+            "MergeObjectID": false,
+            "MergeObjectSize": 1.0,
+            "MergeObjectDistance": 1.0,
+            "IsStreamScene": false,
+            "UseComputeShader": true,
+            "UseVisbileCache": true,
+            "ComputePerframe": false,
+            "PerframeExecCount": 0,
+            "TileDimension": 8,
+            "TileSize": 1000,
+            "indices": []
+        },
+        {
+            "MapName": "s003",
+            "CellSize": 2.0,
+            "ScreenWidth": 600,
+            "ScreenHeight": 600,
+            "MaxPlayerHeight": 2.5,
+            "MinPlayerHeight": 0.0,
+            "SceneAssetPath": "Assets/Maps/maps/S003/Scenes",
+            "SceneNamePattern": "S003",
+            "TemporaryContainer": "D:\buildtemp",
+            "MergeCell": true,
+            "MergeCellWeight": 0.8999999761581421,
+            "MergeObjectID": false,
+            "MergeObjectSize": 1.0,
+            "MergeObjectDistance": 1.0,
+            "IsStreamScene": false,
+            "UseComputeShader": true,
+            "UseVisbileCache": true,
+            "ComputePerframe": true,
+            "PerframeExecCount": 1000,
+            "TileDimension": 8,
+            "TileSize": 1000,
+            "indices": []
+        },
+        {
+            "MapName": "m001",
+            "CellSize": 2.0,
+            "ScreenWidth": 600,
+            "ScreenHeight": 600,
+            "MaxPlayerHeight": 2.5,
+            "MinPlayerHeight": 0.0,
+            "SceneAssetPath": "Assets/Maps/maps/M001/Scenes",
+            "SceneNamePattern": "M001",
+            "TemporaryContainer": "D:\buildtemp",
+            "MergeCell": true,
+            "MergeCellWeight": 0.8999999761581421,
+            "MergeObjectID": false,
+            "MergeObjectSize": 1.0,
+            "MergeObjectDistance": 1.0,
+            "IsStreamScene": false,
+            "UseComputeShader": true,
+            "UseVisbileCache": true,
+            "ComputePerframe": true,
+            "PerframeExecCount": 1000,
+            "TileDimension": 8,
+            "TileSize": 1000,
+            "indices": []
+        },
+        {
+            "MapName": "m002",
+            "CellSize": 2.0,
+            "ScreenWidth": 600,
+            "ScreenHeight": 600,
+            "MaxPlayerHeight": 2.5,
+            "MinPlayerHeight": 0.0,
+            "SceneAssetPath": "Assets/Maps/maps/M002/Scenes",
+            "SceneNamePattern": "M002",
+            "TemporaryContainer": "D:\buildtemp",
+            "MergeCell": true,
+            "MergeCellWeight": 0.8999999761581421,
+            "MergeObjectID": false,
+            "MergeObjectSize": 1.0,
+            "MergeObjectDistance": 1.0,
+            "IsStreamScene": false,
+            "UseComputeShader": true,
+            "UseVisbileCache": true,
+            "ComputePerframe": true,
+            "PerframeExecCount": 1000,
+            "TileDimension": 8,
+            "TileSize": 1000,
+            "indices": []
+        },
+        {
+            "MapName": "m003",
+            "CellSize": 2.0,
+            "ScreenWidth": 600,
+            "ScreenHeight": 600,
+            "MaxPlayerHeight": 2.5,
+            "MinPlayerHeight": 0.0,
+            "SceneAssetPath": "Assets/Maps/maps/M003/Scenes",
+            "SceneNamePattern": "M003",
+            "TemporaryContainer": "D:\buildtemp",
+            "MergeCell": true,
+            "MergeCellWeight": 0.8999999761581421,
+            "MergeObjectID": false,
+            "MergeObjectSize": 1.0,
+            "MergeObjectDistance": 1.0,
+            "IsStreamScene": false,
+            "UseComputeShader": true,
+            "UseVisbileCache": true,
+            "ComputePerframe": true,
+            "PerframeExecCount": 1000,
+            "TileDimension": 8,
+            "TileSize": 1000,
+            "indices": []
+        },
+        {
+            "MapName": "m004",
+            "CellSize": 2.0,
+            "ScreenWidth": 600,
+            "ScreenHeight": 600,
+            "MaxPlayerHeight": 2.5,
+            "MinPlayerHeight": 0.0,
+            "SceneAssetPath": "Assets/Maps/maps/M004/Scenes",
+            "SceneNamePattern": "M004",
+            "TemporaryContainer": "D:\buildtemp",
+            "MergeCell": true,
+            "MergeCellWeight": 0.8999999761581421,
+            "MergeObjectID": false,
+            "MergeObjectSize": 1.0,
+            "MergeObjectDistance": 1.0,
+            "IsStreamScene": false,
+            "UseComputeShader": true,
+            "UseVisbileCache": true,
+            "ComputePerframe": true,
+            "PerframeExecCount": 1000,
+            "TileDimension": 8,
+            "TileSize": 1000,
+            "indices": []
+        },
+        {
+            "MapName": "m006",
+            "CellSize": 2.0,
+            "ScreenWidth": 600,
+            "ScreenHeight": 600,
+            "MaxPlayerHeight": 2.5,
+            "MinPlayerHeight": 0.0,
+            "SceneAssetPath": "Assets/Maps/maps/M006/Scenes",
+            "SceneNamePattern": "M006",
+            "TemporaryContainer": "D:\buildtemp",
+            "MergeCell": true,
+            "MergeCellWeight": 0.8999999761581421,
+            "MergeObjectID": false,
+            "MergeObjectSize": 1.0,
+            "MergeObjectDistance": 1.0,
+            "IsStreamScene": false,
+            "UseComputeShader": true,
+            "UseVisbileCache": true,
+            "ComputePerframe": true,
+            "PerframeExecCount": 1000,
+            "TileDimension": 8,
+            "TileSize": 1000,
+            "indices": []
+        },
+        {
+            "MapName": "002",
+            "CellSize": 2.0,
+            "ScreenWidth": 600,
+            "ScreenHeight": 600,
+            "MaxPlayerHeight": 2.5,
+            "MinPlayerHeight": 0.0,
+            "SceneAssetPath": "Assets/Maps/maps/0001/Scenes",
+            "SceneNamePattern": "002 {0}x{1}",
+            "TemporaryContainer": "D:\buildtemp",
+            "MergeCell": true,
+            "MergeCellWeight": 0.8999999761581421,
+            "MergeObjectID": false,
+            "MergeObjectSize": 1.0,
+            "MergeObjectDistance": 1.0,
+            "IsStreamScene": true,
+            "UseComputeShader": true,
+            "UseVisbileCache": true,
+            "ComputePerframe": true,
+            "PerframeExecCount": 1000,
+            "TileDimension": 8,
+            "TileSize": 10,
+            "indices": [
+                {
+                    "x": 0,
+                    "y": 0
+                },
+                {
+                    "x": 0,
+                    "y": 1
+                },
+                {
+                    "x": 0,
+                    "y": 2
+                },
+                {
+                    "x": 0,
+                    "y": 3
+                },
+                {
+                    "x": 0,
+                    "y": 4
+                },
+                {
+                    "x": 0,
+                    "y": 5
+                },
+                {
+                    "x": 0,
+                    "y": 6
+                },
+                {
+                    "x": 0,
+                    "y": 7
+                },
+                {
+                    "x": 1,
+                    "y": 0
+                },
+                {
+                    "x": 1,
+                    "y": 1
+                },
+                {
+                    "x": 1,
+                    "y": 2
+                },
+                {
+                    "x": 1,
+                    "y": 3
+                },
+                {
+                    "x": 1,
+                    "y": 4
+                },
+                {
+                    "x": 1,
+                    "y": 5
+                },
+                {
+                    "x": 1,
+                    "y": 6
+                },
+                {
+                    "x": 1,
+                    "y": 7
+                },
+                {
+                    "x": 2,
+                    "y": 0
+                },
+                {
+                    "x": 2,
+                    "y": 1
+                },
+                {
+                    "x": 2,
+                    "y": 2
+                },
+                {
+                    "x": 2,
+                    "y": 3
+                },
+                {
+                    "x": 2,
+                    "y": 4
+                },
+                {
+                    "x": 2,
+                    "y": 5
+                },
+                {
+                    "x": 2,
+                    "y": 6
+                },
+                {
+                    "x": 2,
+                    "y": 7
+                },
+                {
+                    "x": 3,
+                    "y": 0
+                },
+                {
+                    "x": 3,
+                    "y": 1
+                },
+                {
+                    "x": 3,
+                    "y": 2
+                },
+                {
+                    "x": 3,
+                    "y": 3
+                },
+                {
+                    "x": 3,
+                    "y": 4
+                },
+                {
+                    "x": 3,
+                    "y": 5
+                },
+                {
+                    "x": 3,
+                    "y": 6
+                },
+                {
+                    "x": 3,
+                    "y": 7
+                },
+                {
+                    "x": 4,
+                    "y": 0
+                },
+                {
+                    "x": 4,
+                    "y": 1
+                },
+                {
+                    "x": 4,
+                    "y": 2
+                },
+                {
+                    "x": 4,
+                    "y": 3
+                },
+                {
+                    "x": 4,
+                    "y": 4
+                },
+                {
+                    "x": 4,
+                    "y": 5
+                },
+                {
+                    "x": 4,
+                    "y": 6
+                },
+                {
+                    "x": 4,
+                    "y": 7
+                },
+                {
+                    "x": 5,
+                    "y": 0
+                },
+                {
+                    "x": 5,
+                    "y": 1
+                },
+                {
+                    "x": 5,
+                    "y": 2
+                },
+                {
+                    "x": 5,
+                    "y": 3
+                },
+                {
+                    "x": 5,
+                    "y": 4
+                },
+                {
+                    "x": 5,
+                    "y": 5
+                },
+                {
+                    "x": 5,
+                    "y": 6
+                },
+                {
+                    "x": 5,
+                    "y": 7
+                },
+                {
+                    "x": 6,
+                    "y": 0
+                },
+                {
+                    "x": 6,
+                    "y": 1
+                },
+                {
+                    "x": 6,
+                    "y": 2
+                },
+                {
+                    "x": 6,
+                    "y": 3
+                },
+                {
+                    "x": 6,
+                    "y": 4
+                },
+                {
+                    "x": 6,
+                    "y": 5
+                },
+                {
+                    "x": 6,
+                    "y": 6
+                },
+                {
+                    "x": 6,
+                    "y": 7
+                },
+                {
+                    "x": 7,
+                    "y": 0
+                },
+                {
+                    "x": 7,
+                    "y": 1
+                },
+                {
+                    "x": 7,
+                    "y": 2
+                },
+                {
+                    "x": 7,
+                    "y": 3
+                },
+                {
+                    "x": 7,
+                    "y": 4
+                },
+                {
+                    "x": 7,
+                    "y": 5
+                },
+                {
+                    "x": 7,
+                    "y": 6
+                },
+                {
+                    "x": 7,
+                    "y": 7
+                }
+            ]
+        },
+        {
+            "MapName": "TestStream",
+            "CellSize": 2.0,
+            "ScreenWidth": 600,
+            "ScreenHeight": 600,
+            "MaxPlayerHeight": 2.5,
+            "MinPlayerHeight": 0.0,
+            "SceneAssetPath": "Assets/Maps/maps/TestStream/Scenes",
+            "SceneNamePattern": "TestStream {0}x{1}",
+            "TemporaryContainer": "D:\buildtemp",
+            "MergeCell": true,
+            "MergeCellWeight": 0.8999999761581421,
+            "MergeObjectID": false,
+            "MergeObjectSize": 1.0,
+            "MergeObjectDistance": 1.0,
+            "IsStreamScene": true,
+            "UseComputeShader": true,
+            "UseVisbileCache": true,
+            "ComputePerframe": true,
+            "PerframeExecCount": 1000,
+            "TileDimension": 8,
+            "TileSize": 10,
+            "indices": [
+                {
+                    "x": 0,
+                    "y": 0
+                },
+                {
+                    "x": 0,
+                    "y": 1
+                },
+                {
+                    "x": 0,
+                    "y": 2
+                },
+                {
+                    "x": 0,
+                    "y": 3
+                },
+                {
+                    "x": 0,
+                    "y": 4
+                },
+                {
+                    "x": 0,
+                    "y": 5
+                },
+                {
+                    "x": 0,
+                    "y": 6
+                },
+                {
+                    "x": 0,
+                    "y": 7
+                },
+                {
+                    "x": 1,
+                    "y": 0
+                },
+                {
+                    "x": 1,
+                    "y": 1
+                },
+                {
+                    "x": 1,
+                    "y": 2
+                },
+                {
+                    "x": 1,
+                    "y": 3
+                },
+                {
+                    "x": 1,
+                    "y": 4
+                },
+                {
+                    "x": 1,
+                    "y": 5
+                },
+                {
+                    "x": 1,
+                    "y": 6
+                },
+                {
+                    "x": 1,
+                    "y": 7
+                },
+                {
+                    "x": 2,
+                    "y": 0
+                },
+                {
+                    "x": 2,
+                    "y": 1
+                },
+                {
+                    "x": 2,
+                    "y": 2
+                },
+                {
+                    "x": 2,
+                    "y": 3
+                },
+                {
+                    "x": 2,
+                    "y": 4
+                },
+                {
+                    "x": 2,
+                    "y": 5
+                },
+                {
+                    "x": 2,
+                    "y": 6
+                },
+                {
+                    "x": 2,
+                    "y": 7
+                },
+                {
+                    "x": 3,
+                    "y": 0
+                },
+                {
+                    "x": 3,
+                    "y": 1
+                },
+                {
+                    "x": 3,
+                    "y": 2
+                },
+                {
+                    "x": 3,
+                    "y": 3
+                },
+                {
+                    "x": 3,
+                    "y": 4
+                },
+                {
+                    "x": 3,
+                    "y": 5
+                },
+                {
+                    "x": 3,
+                    "y": 6
+                },
+                {
+                    "x": 3,
+                    "y": 7
+                },
+                {
+                    "x": 4,
+                    "y": 0
+                },
+                {
+                    "x": 4,
+                    "y": 1
+                },
+                {
+                    "x": 4,
+                    "y": 2
+                },
+                {
+                    "x": 4,
+                    "y": 3
+                },
+                {
+                    "x": 4,
+                    "y": 4
+                },
+                {
+                    "x": 4,
+                    "y": 5
+                },
+                {
+                    "x": 4,
+                    "y": 6
+                },
+                {
+                    "x": 4,
+                    "y": 7
+                },
+                {
+                    "x": 5,
+                    "y": 0
+                },
+                {
+                    "x": 5,
+                    "y": 1
+                },
+                {
+                    "x": 5,
+                    "y": 2
+                },
+                {
+                    "x": 5,
+                    "y": 3
+                },
+                {
+                    "x": 5,
+                    "y": 4
+                },
+                {
+                    "x": 5,
+                    "y": 5
+                },
+                {
+                    "x": 5,
+                    "y": 6
+                },
+                {
+                    "x": 5,
+                    "y": 7
+                },
+                {
+                    "x": 6,
+                    "y": 0
+                },
+                {
+                    "x": 6,
+                    "y": 1
+                },
+                {
+                    "x": 6,
+                    "y": 2
+                },
+                {
+                    "x": 6,
+                    "y": 3
+                },
+                {
+                    "x": 6,
+                    "y": 4
+                },
+                {
+                    "x": 6,
+                    "y": 5
+                },
+                {
+                    "x": 6,
+                    "y": 6
+                },
+                {
+                    "x": 6,
+                    "y": 7
+                },
+                {
+                    "x": 7,
+                    "y": 0
+                },
+                {
+                    "x": 7,
+                    "y": 1
+                },
+                {
+                    "x": 7,
+                    "y": 2
+                },
+                {
+                    "x": 7,
+                    "y": 3
+                },
+                {
+                    "x": 7,
+                    "y": 4
+                },
+                {
+                    "x": 7,
+                    "y": 5
+                },
+                {
+                    "x": 7,
+                    "y": 6
+                },
+                {
+                    "x": 7,
+                    "y": 7
+                }
+            ]
+        }
+    ]
+}

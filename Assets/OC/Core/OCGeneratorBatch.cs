@@ -14,21 +14,53 @@ using UnityEngine.SceneManagement;
 
 namespace OC.Editor
 {
-    
-    internal class OCMapConfig
+    [Serializable]
+    internal struct OCScenesConfig
+    {
+        public List<OCMapConfig> scenesConfig;// = new List<OCMapConfig>();
+    }
+    [Serializable]
+    internal struct OCMapConfig
     {
         public string MapName;
-        public bool IsStreamScene;
+
+        public float CellSize;
+
+        public int ScreenWidth;
+        public int ScreenHeight;
+
+        public float MaxPlayerHeight;
+        public float MinPlayerHeight;
+        
         public string SceneAssetPath;
         public string SceneNamePattern;
+
         public string TemporaryContainer;
-        public int TileDimension;
+
+        public bool MergeCell;
+        public float MergeCellWeight;
+
+        public bool MergeObjectID;
+        public float MergeObjectSize;
+        public float MergeObjectDistance;
+
+        public bool IsStreamScene;    
+        
         public bool UseComputeShader;
+
         public bool UseVisbileCache;
+
         public bool ComputePerframe;
         public int PerframeExecCount;
 
-        public HashSet<Index> Tiles;
+        public int TileDimension;
+        public int TileSize;
+
+        //public bool CustomVolume;
+        //public Vector3 VolumeCenter;
+        //public Vector3 VolumeSize;
+
+        public List<Index> indices;
 
         public override string ToString()
         {
@@ -37,14 +69,14 @@ namespace OC.Editor
                 MapName, IsStreamScene, SceneAssetPath, SceneNamePattern, TemporaryContainer, TileDimension, UseComputeShader);
 
 
-            if (Tiles == null)
+            if (indices == null)
             {
-                str += " No Tiles";
+                str += " No index";
             }
             else
             {
                 str += " Tiles: ";
-                foreach (var tile in Tiles)
+                foreach (var tile in indices)
                 {
                     str += String.Format("[{0}, {1}]", tile.x, tile.y);
                 }
@@ -53,13 +85,13 @@ namespace OC.Editor
             return str;
         }
 
-        public HashSet<Index> GetBakeTiles()
+        public List<Index> GetBakeIndices()
         {
-            var tiles = Tiles;
+            var tiles = indices;
             if (tiles == null)
             {
                 //bake all tiles if there is no any tile specified to bake
-                tiles = new HashSet<Index>();
+                tiles = new List<Index>();
                 var dimension = TileDimension;
                 for (int x = 0; x < dimension; ++x)
                 {
@@ -77,7 +109,7 @@ namespace OC.Editor
         {
             if (IsStreamScene)
             {
-                //return MultiScene.GetSceneNameOfPattern(SceneNamePattern, x, y);
+                return string.Format(SceneNamePattern, x, y);              
             }
 
             return SceneNamePattern;
@@ -85,7 +117,7 @@ namespace OC.Editor
 
         public string GetOCDataFilePath()
         {
-            return System.IO.Path.Combine(TemporaryContainer, GetOCDataFileName());
+            return Path.Combine(TemporaryContainer, GetOCDataFileName());
         }
 
         public string GetOCDataFileName()
@@ -140,7 +172,7 @@ namespace OC.Editor
 
             Debug.LogFormat("Generate OC Data Project Asset Path {0} index {1}", projectAssetPath, index);
             var config = LoadOCMapConfig(projectAssetPath, 0);
-            if (config == null)
+            if (config.MapName == string.Empty)
             {
                 Debug.LogErrorFormat("Can not get oc map config for stream scene in oc data generation, path {0} index {1}", projectAssetPath, 0);
                 ExitOnBatchMode();
@@ -152,7 +184,7 @@ namespace OC.Editor
             if (config.IsStreamScene)
             {
                 config = LoadOCMapConfig(projectAssetPath, index);
-                if (config != null)
+                if (config.MapName != string.Empty)
                 {
                     GenerateOCDataForStreamScene(config);
                 }
@@ -184,7 +216,7 @@ namespace OC.Editor
             //SetTestData();
 
             var config = LoadOCMapConfig(projectPath, 0);
-            if (config == null)
+            if (config.MapName == string.Empty)
             {
                 Debug.LogErrorFormat("Can not get oc map config for stream scene in oc data generation, path {0} index {1}", projectPath, 0);
                 ExitOnBatchMode();
@@ -221,7 +253,7 @@ namespace OC.Editor
             PrintArgs(1);
 
             var config = LoadOCMapConfig(projectPath, 0);
-            if (config == null)
+            if (config.MapName == string.Empty)
             {
                 Debug.LogErrorFormat("Can not get oc map config for stream scene in oc data mergence, path {0} index {1}", projectPath, 0);
                 return;
@@ -268,7 +300,7 @@ namespace OC.Editor
         private static void GenerateOCGenMapConfigFile(string mapName, bool bakeForTile, int processorNum)
         {
             var config = GetMapConfig(mapName);
-            if (config == null)
+            if (config.MapName == string.Empty)
             {
                 Debug.LogErrorFormat("Can not found oc map config item for map {0}", mapName);
                 return;
@@ -279,94 +311,123 @@ namespace OC.Editor
 
         private static OCMapConfig GetMapConfig(string mapName)
         {
-            var filePath = "Assets/Assets/template/OCGenMapConfig.xml";
+            OCMapConfig ret = new OCMapConfig();
+            var filePath = "Assets/Assets/template/OCScenesConfig.json";
             if (!File.Exists(filePath))
             {
-                var otherFilePath = "Assets/Assets/CoreRes/template/OCGenMapConfig.xml";
+                var otherFilePath = "Assets/Assets/CoreRes/template/OCScenesConfig.json";
                 if (!File.Exists(otherFilePath))
                 {
-                    Debug.LogErrorFormat("Can not found config file: \"OCGenMapConfig.xml\" from path {0} or {1}", filePath, otherFilePath);
-                    return null;
+                    Debug.LogErrorFormat("Can not found config file: \"OCScenesConfig.json\" from path {0} or {1}", filePath, otherFilePath);
+                    return ret;
                 }
 
                 filePath = otherFilePath;
             }
 
+            string templateContent = LoadJson(filePath);
 
-            var config = new OCMapConfig();
-            config.UseComputeShader = true; //use compute shader in default
-            config.MapName = mapName;
-            var doc = new XmlDocument();
-            doc.Load(filePath);
+            var scenesConfig = JsonUtility.FromJson<OCScenesConfig>(templateContent);
 
-            var root = doc.DocumentElement;
-            var mapNodes = root.SelectNodes("/root/Map");
-
-            foreach (XmlNode node in mapNodes)
+         
+            foreach(var sceneConfig in scenesConfig.scenesConfig)
             {
-                var nameNode = node.SelectSingleNode("MapName");
-                var name = nameNode.InnerText;
-                if (mapName.Equals(name))
+                if(sceneConfig.MapName == mapName)
                 {
-                    ParseOCMapConfig(node, config);
-                    return config;
+                    ret = sceneConfig;
+                    break;
                 }
             }
 
-            return null;
+            return ret;
         }
-
+     
         private static void GenerateOCGenMapConfigFile(OCMapConfig config, bool bakeForTile, int processorNum)
         {
             DeleteOCMapConfigFile(".\\Assets");
-            var bakeTiles = config.GetBakeTiles();
-            CreateOCGenMapConfigFiles(config, bakeTiles, bakeForTile, processorNum);
+            //var bakeTiles = config.GetBakeTiles();
+            CreateOCGenMapConfigFiles(config, bakeForTile, processorNum);
         }
 
         private static void DeleteOCMapConfigFile(string path)
         {
             //delete origin oc generation files
-            var configFiles = Directory.GetFiles(path, "OCGenMapConfig_*.xml");
+            var configFiles = Directory.GetFiles(path, "OCSceneConfig*.json");
             foreach (var file in configFiles)
             {
                 File.Delete(file);
             }
         }
 
-        private static void CreateOCGenMapConfigFiles(OCMapConfig config, HashSet<Index> bakeTiles, bool bakeForTile, int processorNum)
+        private static void CreateOCGenMapConfigFiles(OCMapConfig config, bool bakeForTile, int processorNum)
         {
-            var tileCount = bakeTiles.Count;
-            processorNum = processorNum > tileCount ? tileCount : processorNum;
-            var perCountArray = new int[processorNum];
-            for (int i = 0; i < tileCount; ++i)
+            if(config.IsStreamScene)
             {
-                perCountArray[i % processorNum] += 1;
-            }
+                var bakeTiles = config.GetBakeIndices();
+                var tileCount = bakeTiles.Count;
+                processorNum = processorNum > tileCount ? tileCount : processorNum;
+                if (processorNum == 0)
+                    processorNum = 1;
+                var perCountArray = new int[processorNum];
+                for (int i = 0; i < tileCount; ++i)
+                {
+                    perCountArray[i % processorNum] += 1;
+                }
 
-            var bakeTileList = bakeTiles.ToList();
-            var startTile = 0;
-            for (int index = 0; index < processorNum; ++index)
-            {
-                Debug.LogFormat("Baking Tile Count for Processor {0} is {1}", index, perCountArray[index]);
-                if (bakeForTile)
+                var startTile = 0;
+                for (int index = 0; index < processorNum; ++index)
                 {
-                    CreateOCGenMapConfigFile(".\\Assets", index, config, bakeTileList, 0, bakeTileList.Count);
+                    Debug.LogFormat("Baking Tile Count for Processor {0} is {1}", index, perCountArray[index]);
+                    if (bakeForTile)
+                    {
+                        CreateOCGenMapConfigFile(".\\Assets", index, config);
+                    }
+                    else
+                    {
+                        var tiles = GetConfigTiles(config.indices, startTile, perCountArray[index]);
+
+                        OCMapConfig tempConfig = config;
+                        tempConfig.indices = tiles;
+                        CreateOCGenMapConfigFile(".\\Assets", index, tempConfig);
+                        startTile += perCountArray[index];
+                    }
+
                 }
-                else
-                {
-                    CreateOCGenMapConfigFile(".\\Assets", index, config, bakeTileList, startTile, perCountArray[index]);
-                    startTile += perCountArray[index];
-                }
-               
             }
+            else
+            {
+                CreateOCGenMapConfigFile(".\\Assets",0, config);
+            }
+            
         }
 
-        private static void CreateOCGenMapConfigFile(string path, int index, OCMapConfig config, List<Index> bakeTiles, int startTile, int tileCount)
+        public static List<Index> GetConfigTiles(List<Index> indeices, int start, int count)
         {
-            var fileName = String.Format("OCGenMapConfig_{0}.xml", index);
+            List<Index> ret = new List<Index>();
+
+            int iCount = 0;
+            for(int i=0; i< indeices.Count; i++)
+            {
+                var index = indeices[i];
+                if (i >= start && iCount < count)
+                {
+                    ret.Add(index);
+                    iCount++;
+                }
+            }
+
+            return ret;
+        }
+
+        private static void CreateOCGenMapConfigFile(string path, int index, OCMapConfig config)
+        {
+            var fileName = String.Format("OCSceneConfig{0}.json", index);
             var filePath = Path.Combine(path, fileName);
-            
-            var writer = new XmlTextWriter(filePath, Encoding.UTF8);
+
+            string jsonText = JsonUtility.ToJson(config, true);
+
+            File.WriteAllText(filePath, jsonText);
+            /*var writer = new XmlTextWriter(filePath, Encoding.UTF8);
             writer.WriteStartDocument();
             writer.WriteStartElement("root");
             WriteXmlNode(writer, "MapName", config.MapName);
@@ -382,7 +443,7 @@ namespace OC.Editor
             WriteXmlTilesNode(writer, bakeTiles, startTile, tileCount);
             writer.WriteEndElement();
             writer.WriteEndDocument();
-            writer.Close();
+            writer.Close();*/
         }
 
         private static void ParseOCMapConfig(XmlNode node, OCMapConfig config)
@@ -396,7 +457,7 @@ namespace OC.Editor
             config.SceneNamePattern = ParseXmlNode<string>(node, "SceneNamePattern");
             config.TemporaryContainer = ParseXmlNode<string>(node, "TemporaryContainer");
             config.TileDimension = ParseXmlNode(node, "TileDimension", 1);
-            config.Tiles = ParseTiles(node);
+            config.indices = ParseTiles(node);
         }
 
         private static T ParseXmlNode<T>(XmlNode parent, string nodeName, T defaultValue = default(T))
@@ -411,7 +472,7 @@ namespace OC.Editor
             return (T) converter.ConvertFromString(node.InnerText);
         }
 
-        private static HashSet<Index> ParseTiles(XmlNode parent)
+        private static List<Index> ParseTiles(XmlNode parent)
         {
             var tilesNode = parent.SelectSingleNode("Tiles");
             if (tilesNode == null)
@@ -421,7 +482,7 @@ namespace OC.Editor
             if (tileNodeList.Count == 0)
                 return null;
 
-            var tileIndices = new HashSet<Index>();
+            var tileIndices = new List<Index>();
             foreach (XmlNode tileNode in tileNodeList)
             {
                 var x = int.Parse(tileNode.Attributes["X"].Value);
@@ -454,22 +515,21 @@ namespace OC.Editor
 
         private static OCMapConfig LoadOCMapConfig(string projectAssetPath, int index)
         {
-            var filePath = Path.Combine(projectAssetPath, String.Format("OCGenMapConfig_{0}.xml", index));
-            
+            OCMapConfig ret = new OCMapConfig();
+
+            var filePath = Path.Combine(projectAssetPath, String.Format("OCSceneConfig{0}.json", index));
+
             if (!File.Exists(filePath))
             {
-                Debug.LogErrorFormat("oc gen map config file {0} does not exist, path {1} index {2}", filePath, projectAssetPath, index);
-                return null;
+                Debug.LogErrorFormat("oc gen map config file {0} does not exist!", filePath);
+                return ret;
             }
 
-            var doc = new XmlDocument();
-            doc.Load(filePath);
-            var root = doc.DocumentElement;
-            
-            var config = new OCMapConfig();
-            config.MapName = ParseXmlNode<string>(root, "MapName");
-            ParseOCMapConfig(root, config);
-            return config;
+            string jsonContent = LoadJson(filePath);
+
+            ret = JsonUtility.FromJson<OCMapConfig>(jsonContent);
+
+            return ret;
         }
 
         private static void SetTestData()
@@ -493,7 +553,7 @@ namespace OC.Editor
 
             //open new scenes
             var config = GetMapConfig(mapName);
-            if (config == null)
+            if (config.MapName == string.Empty)
             {
                 return false;
             }
@@ -570,6 +630,10 @@ namespace OC.Editor
 
 
             var scene = new SingleScene(config.SceneAssetPath, config.SceneNamePattern);
+
+            //scene = new SingleScene(GetScenePath(), gameObject.scene.name);
+            scene.Bake(Config.ComputePerframe);
+
             // var contextManager = new OCBakeContextManager(scene,
             //     () =>
             //     {
@@ -657,14 +721,14 @@ namespace OC.Editor
             return path;
         }
 
-        private static void GenerateOCDataForStreamScene(OCMapConfig config)
+        private static void BakeAll(OCMapConfig config)
         {
-            var tiles = config.Tiles;
+            ConfigGenerator(config);
+            var tiles = config.indices;
             if (tiles != null)
             {
-                // var contextIter = StreamFullSceneContextGenerator(config);
-                // var contextManager = new OCBakeContextManager(contextIter);
-                // contextManager.Bake();
+                var multiScene = new MultiScene(config.SceneAssetPath, config.SceneNamePattern, config.TileDimension, config.TileSize);
+                multiScene.BakeAll();                
             }
             else
             {
@@ -673,115 +737,25 @@ namespace OC.Editor
             }
         }
 
-        // private static IEnumerator<OCBakeContext> StreamFullSceneContextGenerator(OCMapConfig config)
-        // {
-        //     var tiles = config.Tiles;
-        //     foreach (var tile in tiles)
-        //     {
-        //         Debug.LogFormat("Generate Stream Scene OC Data {0} {1}", tile.X, tile.Y);
-        //         var contextIter = StreamOCBakeContextGenerator(config, tile.X, tile.Y);
+        private static void GenerateOCDataForStreamScene(OCMapConfig config)
+        {
+            ConfigGenerator(config);
+            var tiles = config.indices;
+            if (tiles != null)
+            {
+                var multiScene = new MultiScene(config.SceneAssetPath, config.SceneNamePattern, config.TileDimension, config.TileSize);
+                //multiScene.BakeAll(config.TileSize, config.TileDimension); 
+                foreach(var tile in tiles)
+                    multiScene.BakeOne(tile.x, tile.y);
+            }
+            else
+            {
+                Debug.LogErrorFormat("Can not get bake tiles for map {0}", config.MapName);
+                ExitOnBatchMode();
+            }
+        }
 
-        //         while (contextIter.MoveNext())
-        //         {
-        //             yield return contextIter.Current;
-        //         }
-        //     }
-        // }
-
-        // private static IEnumerator<OCBakeContext> StreamTileSceneContextGenerator(OCMapConfig config, int x, int y, int index, int processorNum)
-        // {
-        //     var startx = x <= 0 ? x : x - 1;
-        //     var endx = x >= config.TileDimension - 1 ? x : x + 1;
-        //     var starty = y <= 0 ? y : y - 1;
-        //     var endy = y >= config.TileDimension - 1 ? y : y + 1;
-
-        //     var bakedTiles = config.GetBakeTiles();
-        //     int count = 0;
-        //     for (int xi = startx; xi <= endx; ++xi)
-        //     {
-        //         for (int yi = starty; yi <= endy; ++yi)
-        //         {
-        //             if (bakedTiles.Contains(new TileIndex(xi, yi)))
-        //             {
-        //                 count++;
-        //             }
-        //         }
-        //     }
-
-        //     Debug.LogFormat("Total Bake Tile Count {0} Processor num {1}", count, processorNum);
-
-        //     var perCountArray = new int[processorNum];
-        //     for (int i = 0; i < count; ++i)
-        //     {
-        //         perCountArray[i % processorNum] += 1;
-        //     }
-
-        //     var startTile = 0;
-        //     var endTile = 0;
-        //     for (int i = 0; i < index; ++i)
-        //     {
-        //         startTile += perCountArray[i];
-        //     }
-        //     endTile = startTile + perCountArray[index];
-
-        //     var curTile = 0;
-        //     for (int xi = startx; xi <= endx; ++xi)
-        //     {
-        //         for (int yi = starty; yi <= endy; ++yi)
-        //         {
-        //             var needToBake = bakedTiles.Contains(new TileIndex(xi, yi));
-        //             if (needToBake)
-        //             {
-        //                 if (curTile >= startTile && curTile < endTile)
-        //                 {
-        //                     var contextIter = StreamOCBakeContextGenerator(config, xi, yi);
-        //                     while (contextIter.MoveNext())
-        //                     {
-        //                         yield return contextIter.Current;
-        //                     }
-        //                 }
-
-        //                 curTile++;
-        //             }
-        //         }
-        //     }
-        // }
-
-        // private static IEnumerator<OCBakeContext> StreamOCBakeContextGenerator(OCMapConfig config, int x, int y)
-        // {
-        //     ConfigGenerator(config);
-        //     var path = config.SceneAssetPath;
-        //     var sceneNamePattern = config.SceneNamePattern;
-        //     var tileDimension = config.TileDimension;
-        //     var temporaryContainer = config.TemporaryContainer;
-
-        //     OpenStreamScene(path, sceneNamePattern, x, y, tileDimension);
-        //     var multiScene = new MultiScene(path, sceneNamePattern, tileDimension, 1000);
-        //     Debug.LogFormat("Bake Stream Scene Tile {0} {1} ...", x, y);
-        //     var contextIter = multiScene.GetBakeContexts(x, y, temporaryContainer);
-
-        //     while (contextIter.MoveNext())
-        //     {
-        //         var context = contextIter.Current;
-        //         if (context.TileIndex.Equals(new Index(x, y)))
-        //         {
-        //             context.OnSuccessCallback += () =>
-        //             {
-        //                 var sceneName = multiScene.GetSceneNameOf(x, y);
-        //                 if (!IsSceneOpened(sceneName))
-        //                 {
-        //                     throw new Exception(String.Format("Baked Scene {0} is not loaded", sceneName));
-        //                 }
-        //                 GenerateSceneOCDiffPatch(sceneName, temporaryContainer);
-
-        //                 Debug.LogFormat("Bake Stream Scene Tile {0} {1} Successfully", x, y);
-        //             };
-        //         }
-
-        //         yield return context;
-        //     }
-
-        // }
+       
 
         private static void OpenStreamScene(string path, string sceneNamePattern, int x, int y, int tileDimension)
         {
@@ -871,7 +845,7 @@ namespace OC.Editor
         private static bool ApplyOCDiffPatch(string mapName)
         {
             var config = GetMapConfig(mapName);
-            if (config == null)
+            if (config.MapName == string.Empty)
             {
                 return false;
             }
@@ -880,7 +854,7 @@ namespace OC.Editor
             var success = false;
             if (config.IsStreamScene)
             {
-                var tiles = config.GetBakeTiles();
+                var tiles = config.GetBakeIndices();
                 foreach (var tile in tiles)
                 {
                     var sceneName = config.GetSceneNameOf(tile.x, tile.y);
@@ -1047,7 +1021,7 @@ namespace OC.Editor
         private static void CopyOCData(string mapName, string projectPath)
         {
             var config = GetMapConfig(mapName);
-            if (config != null)
+            if (config.MapName != string.Empty)
             {
                 var ocDataFilePath = config.GetOCDataFilePath();
                 var destDirectory = Path.Combine(projectPath, config.SceneAssetPath);
@@ -1120,19 +1094,18 @@ namespace OC.Editor
 
         private static void ConfigGenerator(OCMapConfig config)
         {
-            ComputeShader computeShader = null;
-            var useComputeShader = config.UseComputeShader;
-            if (useComputeShader)
-            {
-                computeShader = GetOCVisComputeShader();
 
-                if (computeShader == null)
-                {
-                    useComputeShader = false;
-                }
-            }
-
-            Config.UseComputeShader = useComputeShader;
+            Config.CellSize = config.CellSize;
+            Config.ScreenHeight = config.ScreenHeight;
+            Config.ScreenWidth = config.ScreenWidth;
+            Config.MaxPlayAreaHeight = config.MaxPlayerHeight;
+            Config.MinPlayAreaHeight = config.MinPlayerHeight;
+            Config.mergeCell = config.MergeCell;
+            Config.CellWeight = config.MergeCellWeight;
+            Config.mergeObjectID = config.MergeObjectID;
+            Config.mergeObjectDistance = config.MergeObjectDistance;
+            Config.mergeObjectMaxSize = config.MergeObjectSize;
+            Config.UseComputeShader = config.UseComputeShader;
             Config.UseVisibleCache = config.UseVisbileCache;
             Config.SavePerCell = true;
             Config.ClearOnSave = true;

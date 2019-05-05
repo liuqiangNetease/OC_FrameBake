@@ -82,35 +82,31 @@ namespace OC
             }
         }
 
-        public void BakeOne(int x, int y, int tileSize)
+        public void BakeOne(int x, int y)
         {
-            int tileX = 8, tileY = 8;
-            int tileSizeX = tileSize;
-            int tileSizeY = tileSize;
-            SetWorldLimits(0, tileX * tileSizeX, 0, tileY * tileSizeY, tileX, tileY);
+            //int tileX = 8, tileY = 8;
+            //int tileSizeX = tileSize;
+            //int tileSizeY = tileSize;
+           // SetWorldLimits(0, tileX * tileSizeX, 0, tileY * tileSizeY, tileX, tileY);
 
-           Window window = new Window(this, 1);
+            Window window = new Window(this, 1);
+            Index mainIndex = new Index(x, y);
+            window.Init(mainIndex);
+            window.Bake();
           
-            for (int i =0; i < tileX; i++)
-            for (int j = 0; j < tileY; j++)
-            {
-                Index mainIndex = new Index(i, j);
-                window.Init(mainIndex);
-                window.Bake();
-            }
         }
 
-        public void BakeAll(int tileSize, int tileDimension)
+        public void BakeAll()
         {
-            int tileX = tileDimension, tileY = tileDimension;
-            int tileSizeX = tileSize;
-            int tileSizeY = tileSize;
-            SetWorldLimits(0, tileX * tileSizeX, 0, tileY * tileSizeY, tileX, tileY);
+            //int tileX = tileDimension, tileY = tileDimension;
+            //int tileSizeX = tileSize;
+            //int tileSizeY = tileSize;
+            //SetWorldLimits(0, tileX * tileSizeX, 0, tileY * tileSizeY, tileX, tileY);
 
            Window window = new Window(this, 1);
           
-            for (int i =0; i < tileX; i++)
-            for (int j = 0; j < tileY; j++)
+            for (int i =0; i < TileDimension; i++)
+            for (int j = 0; j < TileDimension; j++)
             {
                 Index mainIndex = new Index(i, j);
                 window.Init(mainIndex);
@@ -411,7 +407,7 @@ namespace OC
         public string GetSceneName(int x, int y)
         {
             //return GetSceneNameOfPattern(NamePattern, x, y);
-            return String.Format(NamePattern, x, y);
+            return string.Format(NamePattern, x, y);
         }
 
         public void Unload(int x, int y)
