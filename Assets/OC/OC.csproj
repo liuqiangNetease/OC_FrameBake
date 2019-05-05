@@ -1,0 +1,128 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{B7745900-A300-880B-0CAF-880BF859880B}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>OC</RootNamespace>
+    <AssemblyName>OC</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\Dll.Temp\</OutputPath>
+    <BaseIntermediateOutputPath>..\..\build_obj_dir\Release\OC\</BaseIntermediateOutputPath>
+    <IntermediateOutputPath>$(BaseIntermediateOutputPath)</IntermediateOutputPath>
+    <DefineConstants>TRACE;DEBUG;UNITY_EDITOR;UNITY_5_6;UNITY_5_6_1_OR_NEWER;UNITY_SOURCE_MODIFIED;UNITY_5;UNITY_53_OR_GREATER;UNITY_52_OR_GREATER</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\Dll.Temp\</OutputPath>
+    <BaseIntermediateOutputPath>..\..\build_obj_dir\Debug\OC\</BaseIntermediateOutputPath>
+    <IntermediateOutputPath>$(BaseIntermediateOutputPath)</IntermediateOutputPath>
+    <DefineConstants>TRACE;DEBUG;UNITY_EDITOR;UNITY_5_6;UNITY_5_6_1_OR_NEWER;UNITY_SOURCE_MODIFIED;UNITY_5;UNITY_53_OR_GREATER;UNITY_52_OR_GREATER</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="UnityEditor">
+      <HintPath>..\ThirdParty\Unity\5_6\UnityEditor.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>..\ThirdParty\Unity\5_6\UnityEngine.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Core\Cell.cs" />
+    <Compile Include="Core\ColorN.cs" />
+    <Compile Include="Core\ColorSet.cs" />
+    <Compile Include="Core\Config.cs" />
+    <Compile Include="Core\GameObjectID.cs" />
+    <Compile Include="Core\MathUtil.cs" />
+    <Compile Include="Core\MinRenderer.cs" />
+    <Compile Include="Core\MultiScene.cs" />
+    <Compile Include="Core\OCBakeContextManager.cs" />
+    <Compile Include="Core\OCCamera.cs" />
+    <Compile Include="Core\OCDataHeader.cs" />
+    <Compile Include="Core\OCDataReader.cs" />
+    <Compile Include="Core\OCDataWriter.cs" />
+    <Compile Include="Core\OCVolumeScript.cs" />
+    <Compile Include="Core\RenderableObj.cs" />
+    <Compile Include="Core\SingleScene.cs" />
+    <Compile Include="Core\SoftRenderer.cs" />
+    <Compile Include="Core\SoftRendererUtil.cs" />
+    <Compile Include="Core\Util.cs" />
+    <Compile Include="Core\Vertex.cs" />
+    <Compile Include="Core\VisVolume.cs" />
+    <Compile Include="Core\seamless\Index.cs" />
+    <Compile Include="Core\seamless\Tile.cs" />
+    <Compile Include="Core\seamless\Window.cs" />
+    <Compile Include="Core\seamless\World.cs" />
+    <Compile Include="Editor\OCGenerator.cs" />
+    <Compile Include="Editor\OCGeneratorBatch.cs" />
+    <Compile Include="Editor\OCGeneratorEditor.cs" />
+    <Compile Include="Editor\OCGeneratorTest.cs" />
+    <Compile Include="Editor\PVSTest.cs" />
+    <Compile Include="Editor\VolumeCellRasterExample.cs" />
+    <Compile Include="OCTest.cs" />
+    <Compile Include="Octree\BoundsOctree.cs" />
+    <Compile Include="Octree\BoundsOctreeNode.cs" />
+    <Compile Include="Octree\PointOctree.cs" />
+    <Compile Include="Octree\PointOctreeNode.cs" />
+    <Compile Include="Profiler\OCProfiler.cs" />
+    <Compile Include="Raster\CellPlacementRasterPolicy.cs" />
+    <Compile Include="Raster\CellToHeightsMap.cs" />
+    <Compile Include="Raster\RasterMesh.cs" />
+    <Compile Include="Raster\RasterVectorUtils.cs" />
+    <Compile Include="Raster\RasterVolume.cs" />
+    <Compile Include="Raster\TriangleRasterizer.cs" />
+    <Compile Include="Raster\VolumeCellRaster.cs" />
+    <Compile Include="Stream\GZipAlgorithm.cs" />
+    <Compile Include="Stream\NoZipAlgorithm.cs" />
+    <Compile Include="Stream\OCStreamer.cs" />
+    <Compile Include="Stream\StreamAlgorithm.cs" />
+    <Compile Include="Stream\StreamProcessor.cs" />
+    <Compile Include="Stream\StreamUnit.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Common\Common.csproj">
+      <Project>{8EEA3EAC-7A8C-6982-6347-7DD64F88F0D2}</Project>
+      <Name>Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Shared.Scripts\Shared.Scripts.csproj">
+      <Project>{D2164AE1-BEE4-3DE7-A778-AE0D93E5194C}</Project>
+      <Name>Shared.Scripts</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+  <PropertyGroup>
+    <PostBuildEvent>cd $(ProjectDir)
+copy ..\..\Dll.Temp\OC.dll ..\..\Dll.Shared /y 
+copy ..\..\Dll.Temp\OC.pdb ..\..\Dll.Shared /y 
+</PostBuildEvent>
+  </PropertyGroup>
+</Project>
