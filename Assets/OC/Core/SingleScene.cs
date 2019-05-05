@@ -1020,6 +1020,7 @@ namespace OC
 #if UNITY_EDITOR
         public override string GetOCDataFilePath()
         {
+            //此处报错 nullRefereceException
             var scenePath = UnityEditor.SceneManagement.EditorSceneManager.GetSceneByName(Name).path;
             return scenePath.Replace(".unity", OCDataFileSuffix);
         }

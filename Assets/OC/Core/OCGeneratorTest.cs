@@ -373,11 +373,11 @@ namespace OC.Editor
             GenerateAllSceneRenderableObjectID();
         }
         //4 ocgenerate.bat 执行并行烘焙(得到pvs数据)
-        public static void TestGenerateOCData()
+        public static void TestGenerateOCData(int index)
         {
             //GenerateOCData();
             var projectAssetPath = ".\\Assets";// System.Environment.GetCommandLineArgs()[1];
-            var index = 0;// int.Parse(System.Environment.GetCommandLineArgs()[2]);
+            //var index = 0;// int.Parse(System.Environment.GetCommandLineArgs()[2]);
             //PrintArgs(2);
 
             Debug.LogFormat("Generate OC Data Project Asset Path {0} index {1}", projectAssetPath, index);

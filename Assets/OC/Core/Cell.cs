@@ -18,7 +18,7 @@ namespace OC
 
         ~Cell()
         {
-            Debug.Log("clear cell suc!");
+            //Debug.Log("clear cell suc!");
         }
         public List<Cell> children = new List<Cell>();
 

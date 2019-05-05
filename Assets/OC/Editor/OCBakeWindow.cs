@@ -125,12 +125,12 @@ namespace OC.Editor
 
             if (GUILayout.Button("TestInitConfig(open scenes and generate ID)"))
             {
-                OCGenerator.TestInitOCGeneration(sceneName,2,2);
+                OCGenerator.TestInitOCGeneration(sceneName,7,7);
             }
 
             if (GUILayout.Button("TestBake"))
             {
-                OCGenerator.TestGenerateOCData();
+                OCGenerator.TestGenerateOCData(63);
             }
 
             if (GUILayout.Button("BakeAll"))

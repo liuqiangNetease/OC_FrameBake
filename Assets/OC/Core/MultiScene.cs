@@ -98,16 +98,13 @@ namespace OC
 
         public void BakeAll()
         {
-            //int tileX = tileDimension, tileY = tileDimension;
-            //int tileSizeX = tileSize;
-            //int tileSizeY = tileSize;
-            //SetWorldLimits(0, tileX * tileSizeX, 0, tileY * tileSizeY, tileX, tileY);
 
-           Window window = new Window(this, 1);
-          
+            //Window window = new Window(this, 1);
+
             for (int i =0; i < TileDimension; i++)
             for (int j = 0; j < TileDimension; j++)
             {
+                Window window = new Window(this, 1);
                 Index mainIndex = new Index(i, j);
                 window.Init(mainIndex);
                 window.Bake();
