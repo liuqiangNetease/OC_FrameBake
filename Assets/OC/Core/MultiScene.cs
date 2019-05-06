@@ -99,12 +99,12 @@ namespace OC
         public void BakeAll()
         {
 
-            //Window window = new Window(this, 1);
+            Window window = new Window(this, 1);
 
             for (int i =0; i < TileDimension; i++)
             for (int j = 0; j < TileDimension; j++)
             {
-                Window window = new Window(this, 1);
+                //Window window = new Window(this, 1);
                 Index mainIndex = new Index(i, j);
                 window.Init(mainIndex);
                 window.Bake();
@@ -456,6 +456,28 @@ namespace OC
                 }
             }
         }
+#if UNITY_EDITOR
+        public void TestLoad()
+        {
+            int tileX = _tileDimension, tileY = _tileDimension;
+            int tileSizeX = _tileSize;
+            int tileSizeY = _tileSize;
+            SetWorldLimits(0, tileX * tileSizeX, 0, tileY * tileSizeY, tileX, tileY);
+
+
+            for (int i = 0; i < tileX; i++)
+                for (int j = 0; j < tileY; j++)
+                {
+                    string sceneName = GetSceneName(i, j);
+                    var index = new Index(i, j);
+                    var scene = new SingleScene(Path, sceneName, index, _tileDimension, _data, this);
+                    scene.Open();
+                    scene.Load();
+
+                    tileMap[index] = scene;
+                }
+        }
+#endif
 
         public void Load()
         {
@@ -472,9 +494,11 @@ namespace OC
                 var index = new Index(i, j);
                 var tile = new SingleScene(Path, sceneName, index, _tileDimension, _data, this);
                 tile.DoLoad();
-                tileMap[index] = tile;
+                tileMap[index] = tile;              
             }
         }
+
+
 
         public void UndoDisabledObjects()
         {

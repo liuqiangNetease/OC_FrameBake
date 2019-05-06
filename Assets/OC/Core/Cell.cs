@@ -203,10 +203,10 @@ namespace OC
                         Index newIndex = currentIndex + new Index(i, j);
                         if (owner.owner.Owner.IsValidIndex(newIndex))
                         {
-                            var multiScene = owner.owner.Owner as MultiScene;
-                            var scene = multiScene.GetTile(newIndex) as SingleScene;
+                            //var multiScene = owner.owner.Owner as MultiScene;
+                            //var scene = multiScene.GetTile(newIndex) as SingleScene;
 
-                            if (scene != null)
+                            //if (scene != null)
                             {
                                 var maxGameObjectIdCount = owner.owner.GetNeighborSceneMaxObjectId(newIndex);
                                 if (maxGameObjectIdCount > 0)
@@ -259,12 +259,16 @@ namespace OC
                         if (owner.owner.Owner.IsValidIndex(newIndex))
                         {
                             var multiScene = owner.owner.Owner as MultiScene;
-                            var scene = multiScene.GetTile(newIndex) as SingleScene;
+                            var scene = multiScene.ExistTile(newIndex) as SingleScene;
                             if (scene != null)
                             {
                                 var flag = new BitArray(scene.MaxGameObjectIDCount);
                                 flag.SetAll(false);
                                 visFlagDic.Add(new Index(i, j), flag);
+                            }
+                            else
+                            {
+                                Debug.LogError("Cell::SaveData error!");
                             }
                         }
                     }

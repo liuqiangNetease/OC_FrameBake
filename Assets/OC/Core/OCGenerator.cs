@@ -56,8 +56,8 @@ namespace OC.Editor
 
         public void TestPVS()
         {
-            var testPVS = new PVSTest(Camera.main);
-            testPVS.Test(TestCellCount);
+            //var testPVS = new PVSTest(Camera.main, new OCSceneConfig());
+            //testPVS.Test(TestCellCount);
         }
 
         public void GenerateFixedSceneOCData()

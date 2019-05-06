@@ -7,6 +7,9 @@ namespace OC.Editor
 {
     public class OCBakeWindow : EditorWindow 
     {
+        MultiScene streamScene;
+
+        SingleScene singleScene;
 
         string sceneName;
         int processNumber = 8;
@@ -83,7 +86,7 @@ namespace OC.Editor
             //screenHeight = EditorGUILayout.IntField("Screen Height",screenHeight);
             //maxPlayAreaHeight = EditorGUILayout.Slider("Max play area height", maxPlayAreaHeight,0, 10);
             //minPlayAreaHeight = EditorGUILayout.Slider("Min play area height", minPlayAreaHeight,0, 10);
-            
+
 
             //IsFrameBake = EditorGUILayout.BeginToggleGroup("bake frame by frame", IsFrameBake);
             //frameCellCount = EditorGUILayout.IntField("frame cell count", frameCellCount);
@@ -113,9 +116,14 @@ namespace OC.Editor
             //volumeSize = EditorGUILayout.Vector3Field("volume size", volumeSize);
             //EditorGUILayout.EndToggleGroup();
 
+            if (GUILayout.Button("Generate test stream scene"))
+            {              
+                OCGenerator.GenerateTestStreamScenes("Assets/Maps/maps/0001/Scenes/");
+            }
+
             if (GUILayout.Button("tempCreateScenesJson"))
             {
-                OCGenerator.TestCreateScensJson();
+                OCGenerator.TestCreateScensJson();               
             }
 
             if (GUILayout.Button("TestGenerateOCGenMapConfigFile"))
@@ -125,7 +133,7 @@ namespace OC.Editor
 
             if (GUILayout.Button("TestInitConfig(open scenes and generate ID)"))
             {
-                OCGenerator.TestInitOCGeneration(sceneName,7,7);
+                OCGenerator.TestInitOCGeneration(sceneName,1,1);
             }
 
             if (GUILayout.Button("TestBake"))
@@ -138,7 +146,76 @@ namespace OC.Editor
                 OCGenerator.TestBakeAll();
             }
 
+            if (GUILayout.Button("TestPVS"))
+            {
+                OCSceneConfig config = OCGenerator.GetMapConfig(sceneName);
+                PVSTest test = new PVSTest(Camera.main, config);
+                test.Do(-1);
+            }
 
+            if (GUILayout.Button("LoadOCData"))
+            {
+                OCSceneConfig config = OCGenerator.GetMapConfig(sceneName);
+                if(config.IsStreamScene)
+                {
+                    streamScene = new OC.MultiScene(config.SceneAssetPath, config.SceneNamePattern, config.TileDimension, config.TileSize);
+                    streamScene.TestLoad();
+                }
+                else
+                {
+                    singleScene = new OC.SingleScene(config.SceneAssetPath, config.SceneNamePattern, null);
+                    singleScene.TestLoad();
+                }
+                
+            }
+
+            if (GUILayout.Button("EnableOC"))
+            {
+                OCSceneConfig config = OCGenerator.GetMapConfig(sceneName);
+                if(config.IsStreamScene)
+                {
+                    if (streamScene == null)
+                        Debug.LogError("stream scene is null!");
+                    else
+                    {
+                        streamScene.UndoDisabledObjects();
+                        streamScene.DoCulling(Camera.main.transform.position);
+                    }
+                }
+                else
+                {
+                    if (singleScene == null)
+                        Debug.LogError("stream scene is null!");
+                    else
+                    {
+                        singleScene.UndoDisabledObjects();
+                        singleScene.DoCulling(Camera.main.transform.position);
+                    }
+                }
+                
+            }
+            if (GUILayout.Button("DisableOC"))
+            {
+                OCSceneConfig config = OCGenerator.GetMapConfig(sceneName);
+                if (config.IsStreamScene)
+                {
+                    if (streamScene == null)
+                        Debug.LogError("stream scene is null!");
+                    else
+                    {
+                        streamScene.UndoDisabledObjects();                       
+                    }
+                }
+                else
+                {
+                    if (singleScene == null)
+                        Debug.LogError("stream scene is null!");
+                    else
+                    {
+                        singleScene.UndoDisabledObjects();                        
+                    }
+                }
+            }
         }
     }
 }

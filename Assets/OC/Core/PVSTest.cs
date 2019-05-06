@@ -14,14 +14,19 @@ namespace OC
         public static int _width = 512;
         public static int _height = 512;
 
+        SingleScene singleScene;
+
+        MultiScene streamScene;
+
 
         private List<ReflectionProbe> _reflectionProbeList = new List<ReflectionProbe>();
         private List<Light> _lightList = new List<Light>();
         private List<LightProbeGroup> _lightProbeGroupList = new List<LightProbeGroup>();
      
-        public PVSTest(Camera camera)
+        public PVSTest(Camera camera, OCSceneConfig config)
         {
             cam = camera;
+            this.config = config;
         }
 
         public void Test(int countCell)
@@ -110,10 +115,22 @@ namespace OC
 
         public void Do(int TestCellCount)
         {
-
-            var name = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
-            SingleScene scene = new OC.SingleScene("", name, null);
-            scene.Load();
+           
+           
+            if (config.IsStreamScene)
+            {
+                streamScene = new OC.MultiScene(config.SceneAssetPath, config.SceneNamePattern, config.TileDimension, config.TileSize);
+                streamScene.TestLoad();
+            }
+            else
+            {
+                singleScene = new OC.SingleScene(config.SceneAssetPath, config.SceneNamePattern, null);
+                singleScene.TestLoad();
+            }
+            
+            //var name = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+            //SingleScene scene = new OC.SingleScene("", name, null);
+            //scene.Load();
 
             int width = _width;
             int height = _height;
@@ -124,39 +141,56 @@ namespace OC
 
             Texture2D tex = new Texture2D(width, height, TextureFormat.ARGB32, false);
 
-            for (int v = 0; v < scene.volumelList.Count; v++)
+            if(config.IsStreamScene)
             {
-                string title = "test volume " + v + "/" + scene.volumelList.Count;
-                string info = "";
-                var volume = scene.volumelList[v];
-
-                if (TestCellCount > 0)
+                foreach(var tile in streamScene.tileMap)
                 {
-                    for (int i = 0; i < TestCellCount; i++)
-                    {                      
-                        info = "cell " + i + "/" + TestCellCount;
-                        bool bCancel = EditorUtility.DisplayCancelableProgressBar(title, info, (float)i / TestCellCount);
+                    var scene = tile.Value as SingleScene;
+
+                    for (int v = 0; v < scene.volumelList.Count; v++)
+                    {
+                        string title = "test volume " + v + "/" + scene.volumelList.Count;
+                        string info = "";
+                        var volume = scene.volumelList[v];
+
+                        int finalCellCount = TestCellCount > 0 ? TestCellCount : volume.cellList.Count;
+
+                        for (int i = 0; i < finalCellCount; i++)
+                        {
+                            info = "cell " + i + "/" + finalCellCount;
+                            bool bCancel = EditorUtility.DisplayCancelableProgressBar(title, info, (float)i / finalCellCount);
+                            if (bCancel)
+                                break;
+                            int ranValue = UnityEngine.Random.Range(0, volume.cellList.Count - 1);
+                            var cell = volume.cellList[ranValue];
+                            MoveCamera(scene, tex, cell.aabb.center);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                for (int v = 0; v < singleScene.volumelList.Count; v++)
+                {
+                    string title = "test volume " + v + "/" + singleScene.volumelList.Count;
+                    string info = "";
+                    var volume = singleScene.volumelList[v];
+
+                    int finalCellCount = TestCellCount > 0 ? TestCellCount : volume.cellList.Count;
+                  
+                    for (int i = 0; i < finalCellCount; i++)
+                    {
+                        info = "cell " + i + "/" + finalCellCount;
+                        bool bCancel = EditorUtility.DisplayCancelableProgressBar(title, info, (float)i / finalCellCount);
                         if (bCancel)
                             break;
                         int ranValue = UnityEngine.Random.Range(0, volume.cellList.Count - 1);
                         var cell = volume.cellList[ranValue];
-                        MoveCamera(scene, tex, cell.aabb.center);
-                    }
-
-                }
-                else
-                {
-                    for (int j = 0; j < volume.cellList.Count; j++)
-                    {                      
-                        info = "cell " + j + "/" + volume.cellList.Count;
-                        bool bCancel = EditorUtility.DisplayCancelableProgressBar(title, info, (float)j / volume.cellList.Count);
-                        if (bCancel)
-                            break;
-                        var cell = volume.cellList[j];
-                        MoveCamera(scene, tex, cell.aabb.center);
+                        MoveCamera(singleScene, tex, cell.aabb.center);
                     }
                 }
             }
+            
 
             EditorUtility.ClearProgressBar();
         }
@@ -240,7 +274,7 @@ namespace OC
 
         private Camera cam;
 
-     
+        OCSceneConfig config;
 
         private Vector3 _oldCameraPos;
         private Vector3 _oldCameraDir;

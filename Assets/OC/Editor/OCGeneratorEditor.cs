@@ -245,7 +245,7 @@ namespace OC.Editor
 
             if (GUILayout.Button("Generate TestStreamScenes"))
             {
-                generator.GenerateTestStreamScenes("Assets/Scene/001/");
+                //generator.GenerateTestStreamScenes("Assets/Scene/001/");
             }
 
             if (PropIsFixedScene.boolValue)

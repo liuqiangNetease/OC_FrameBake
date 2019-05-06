@@ -208,11 +208,11 @@ namespace OC
                     int workSizeX = sizeX;
                     while (workSizeX-- > 0)
                     {
-                        Tile tile = _owner.GetTile(workIndex);
+                        Tile tile = _owner.GetOrCreateTile(workIndex);
                         if (tile != null)
                         {
-                            tile.AddWindow(this);
-                            tileMap.Add(workIndex, tile);
+                            tile.AddWindow(this);                    
+                            tileMap[workIndex] = tile;
                         }
 
                         workIndex.x = workIndex.NextX();

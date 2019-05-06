@@ -956,7 +956,7 @@ namespace OC
                 {
                     for (int y = 0; y < tileDimension; ++y)
                     {
-                        var tile = Owner.GetTile(new Index(x, y));
+                        var tile = Owner.ExistTile(new Index(x, y));
                         if (tile == null)
                         {
                             writer.Write(0);
@@ -1020,8 +1020,20 @@ namespace OC
 #if UNITY_EDITOR
         public override string GetOCDataFilePath()
         {
-            //此处报错 nullRefereceException
-            var scenePath = UnityEditor.SceneManagement.EditorSceneManager.GetSceneByName(Name).path;
+            string scenePath = string.Empty;
+            Scene scene = UnityEditor.SceneManagement.EditorSceneManager.GetSceneByName(Name);
+            if (scene != null)
+                scenePath = scene.path;
+            else
+            {
+                Debug.LogError("GetOCDataFilePath: scene is null! " + Name);
+            }
+
+            if (scenePath == null)
+            {
+                Debug.LogError("GetOCDataFilePath: scenePath is null! " + Name);
+                return "";
+            }
             return scenePath.Replace(".unity", OCDataFileSuffix);
         }
 #else
@@ -1052,6 +1064,19 @@ namespace OC
             }
 
         }
+
+#if UNITY_EDITOR
+        public void TestLoad()
+        {
+            Open(OpenSceneMode.Single);
+            using (var ocReader = new OCDataReader(GetOCDataFilePath()))
+            {
+                tree = new BoundsOctree<Cell>(10000, Vector3.zero, 8 * 2/*cellSize*/, 1.25f);
+                LoadBlock(ocReader, 0);
+                GerneraterRenderableObjs();
+            }
+        }
+#endif
 
         public void Load()
         {

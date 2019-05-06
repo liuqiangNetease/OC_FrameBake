@@ -111,7 +111,7 @@ namespace OC
             return null;
         }
 
-        public Tile GetTile(Index index)
+        public Tile GetOrCreateTile(Index index)
         {
             Tile ret = null;
             if (IsValidIndex(index))
@@ -121,7 +121,6 @@ namespace OC
                     ret = BuildTile(index);
                     if (ret != null)
                     {
-                      
                         tileMap.Add(index, ret);
                     }
                 }
