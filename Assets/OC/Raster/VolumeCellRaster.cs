@@ -145,7 +145,7 @@ namespace OC.Raster
         private Vector3[] _triVertices = new Vector3[3];
         private Vector2[] _XYPositions = new Vector2[3];
         // Fractions of PrecomputedVisibilitySettings.PlayAreaHeight to guarantee have cell coverage
-        private static readonly float[] _testHeights = new float[]{ .4f, .6f, .8f };
+        //private static readonly float[] _testHeights = new float[]{ .4f, .6f, .8f };
         public IList<VolumeCell> ComputeVolumeCells(IEnumerable<Collider> allColliders, Func<string, string, float, bool> progress = null)
         {
             GC.Collect();

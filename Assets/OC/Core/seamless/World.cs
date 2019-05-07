@@ -35,11 +35,6 @@ namespace OC
         {
         }
 
-        ~World()
-        {
-            Clean();
-        }
-
         public void Save()
         {
 //            using (BinaryWriter w = new BinaryWriter(File.Open(OC.Config.savePath + Name + ".oc", FileMode.Create)))
@@ -169,6 +164,7 @@ namespace OC
         public void LoadTile(Tile tile)
         {
             tile.Open();
+            tileMap[tile.TileIndex] = tile;
         }
 
         public bool InitOnLoad(Tile tile)
@@ -179,9 +175,7 @@ namespace OC
         public void UnloadTile(Tile tile)
         {
             tile.Close();
-            if(tile.windowList.Count == 0)
-                DestroyTile(tile.TileIndex);
-
+            DestroyTile(tile.TileIndex);
         }
     }
 }

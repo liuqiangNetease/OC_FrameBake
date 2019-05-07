@@ -36,13 +36,8 @@ namespace OC
             set { _index = value; }
         }
 
-        private int _tileDimension;
-
         private int _blockIndex;
         private byte[] _data;
-
-        public List<Window> windowList = new List<Window>();
-      
 
         public Tile(World owner) :
             this(null, owner)
@@ -58,37 +53,13 @@ namespace OC
 
         public Tile(Index index, int tileDimension, byte[] data, World owner)
         {
-            _index = index;
-            _tileDimension = tileDimension;
+            _index = index;       
 
             _blockIndex = _index.x * tileDimension + index.y;
             _data = data;
 
             _owner = owner;
             _state = TileState.Unloaded;
-        }
-
-        ~Tile()
-        {
-            if(_owner != null)
-                _owner.RemoveTile(_index);
-
-            for (int i = 0; i < windowList.Count; i++)
-            {
-                windowList[i].RemoveTile(_index);
-            }
-            windowList.Clear();
-        }
-        public void AddWindow(Window window)
-        {
-            if(windowList.Contains(window) == false)
-                windowList.Add(window);
-        }
-
-        public void RemoveWindow(Window window)
-        {
-            if (windowList.Contains(window))
-                windowList.Remove(window);
         }
 
         public virtual void Open()
@@ -122,14 +93,11 @@ namespace OC
         {
             if (_state == TileState.Loaded)
             {
-                if ( windowList.Count <= 0 )
-                {
-                    _state = TileState.Unloading;
+                _state = TileState.Unloading;
 
-                   Unload();
+                Unload();
 
-                    _state = TileState.Unloaded;
-                }
+                _state = TileState.Unloaded;
             }
         }
 

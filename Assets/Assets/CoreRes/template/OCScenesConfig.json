@@ -242,7 +242,7 @@
         },
         {
             "MapName": "002",
-            "CellSize": 1.0,
+            "CellSize": 2.0,
             "ScreenWidth": 600,
             "ScreenHeight": 600,
             "MaxPlayerHeight": 2.5,

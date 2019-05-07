@@ -83,31 +83,12 @@ namespace OC
 
             _collidingCells.Clear();
 
-            owner.tree.GetColliding(_collidingCells, new Bounds(pos, new Vector3(0.001f, 0.001f, 0.001f)));
+            owner.tree.GetColliding(_collidingCells, pos);
             if (_collidingCells.Count > 0)
             {
                 ret = _collidingCells[0];
                 if (_collidingCells[0].parent != null)
                     ret = _collidingCells[0].parent;
-
-                if (_collidingCells.Count > 1)
-                {
-                    float minDis = 10000;
-
-                    for (int i = 0; i < _collidingCells.Count; i++)
-                    {
-                        var collCell = _collidingCells[i];
-
-                        float dis = (collCell.aabb.center - pos).sqrMagnitude;
-                        if (dis < minDis)
-                        {
-                            minDis = dis;
-                            ret = collCell;
-                            if (ret.parent != null)
-                                ret = ret.parent;
-                        }
-                    }
-                }
             }
 
             return ret;

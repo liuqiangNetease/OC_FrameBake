@@ -204,14 +204,47 @@ public class BoundsOctreeNode<T> {
 		}
 	}
 
-	/// <summary>
-	/// Returns an array of objects that intersect with the specified ray, if any. Otherwise returns an empty array. See also: IsColliding.
+    /// <summary>
+	/// Returns an array of objects that intersect with the specified point, if any. Otherwise returns an empty array. See also: IsColliding.
 	/// </summary>
-	/// <param name="checkRay">Ray to check. Passing by ref as it improves performance with structs.</param>
-	/// <param name="maxDistance">Distance to check.</param>
+	/// <param name="checkPoint">point to check. Passing by ref as it improves performance with structs.</param>
 	/// <param name="result">List result.</param>
-	/// <returns>Objects that intersect with the specified ray.</returns>
-	public void GetColliding(ref Ray checkRay, List<T> result, float maxDistance = float.PositiveInfinity) {
+	/// <returns>Objects that intersect with the specified bounds.</returns>
+	public void GetColliding(ref Vector3 checkPoint, List<T> result)
+    {
+        // Are the input bounds at least partially in this node?
+        if (!bounds.Contains(checkPoint))
+        {
+            return;
+        }
+
+        // Check against any objects in this node
+        for (int i = 0; i < objects.Count; i++)
+        {
+            if (objects[i].Bounds.Contains(checkPoint))
+            {
+                result.Add(objects[i].Obj);
+            }
+        }
+
+        // Check children
+        if (children != null)
+        {
+            for (int i = 0; i < 8; i++)
+            {
+                children[i].GetColliding(ref checkPoint, result);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Returns an array of objects that intersect with the specified ray, if any. Otherwise returns an empty array. See also: IsColliding.
+    /// </summary>
+    /// <param name="checkRay">Ray to check. Passing by ref as it improves performance with structs.</param>
+    /// <param name="maxDistance">Distance to check.</param>
+    /// <param name="result">List result.</param>
+    /// <returns>Objects that intersect with the specified ray.</returns>
+    public void GetColliding(ref Ray checkRay, List<T> result, float maxDistance = float.PositiveInfinity) {
 		float distance;
 		// Is the input ray at least partially in this node?
 		if (!bounds.IntersectRay(checkRay, out distance) || distance > maxDistance) {

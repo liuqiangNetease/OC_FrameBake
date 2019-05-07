@@ -916,15 +916,7 @@ namespace OC
 #if UNITY_EDITOR
         public override string GetOCDataFilePath()
         {
-            string scenePath = string.Empty;
-            Scene scene = UnityEditor.SceneManagement.EditorSceneManager.GetSceneByName(Name);
-            if (scene != null)
-                scenePath = scene.path;
-            else
-            {
-                Debug.LogError("GetOCDataFilePath: scene is null! " + Name);
-            }
-
+            string scenePath = UnityEditor.SceneManagement.EditorSceneManager.GetSceneByName(Name).path;
             if (scenePath == null)
             {
                 Debug.LogError("GetOCDataFilePath: scenePath is null! " + Name);

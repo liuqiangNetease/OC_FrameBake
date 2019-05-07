@@ -159,14 +159,29 @@ public class BoundsOctree<T> {
 		rootNode.GetColliding(ref checkBounds, collidingWith);
 	}
 
-	/// <summary>
-	/// Returns an array of objects that intersect with the specified ray, if any. Otherwise returns an empty array. See also: IsColliding.
+    /// <summary>
+	/// Returns an array of objects that intersect with the specified point, if any. Otherwise returns an empty array. See also: IsColliding.
 	/// </summary>
 	/// <param name="collidingWith">list to store intersections.</param>
-	/// <param name="checkRay">ray to check.</param>
-	/// <param name="maxDistance">distance to check.</param>
-	/// <returns>Objects that intersect with the specified ray.</returns>
-	public void GetColliding(List<T> collidingWith, Ray checkRay, float maxDistance = float.PositiveInfinity) {
+	/// <param name="checkBounds">point to check.</param>
+	/// <returns>Objects that intersect with the specified bounds.</returns>
+	public void GetColliding(List<T> collidingWith, Vector3 checkPoint)
+    {
+        //#if UNITY_EDITOR
+        // For debugging
+        //AddCollisionCheck(checkBounds);
+        //#endif
+        rootNode.GetColliding(ref checkPoint, collidingWith);
+    }
+
+    /// <summary>
+    /// Returns an array of objects that intersect with the specified ray, if any. Otherwise returns an empty array. See also: IsColliding.
+    /// </summary>
+    /// <param name="collidingWith">list to store intersections.</param>
+    /// <param name="checkRay">ray to check.</param>
+    /// <param name="maxDistance">distance to check.</param>
+    /// <returns>Objects that intersect with the specified ray.</returns>
+    public void GetColliding(List<T> collidingWith, Ray checkRay, float maxDistance = float.PositiveInfinity) {
 		//#if UNITY_EDITOR
 		// For debugging
 		//AddCollisionCheck(checkRay);

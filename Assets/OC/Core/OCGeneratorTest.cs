@@ -70,7 +70,7 @@ namespace OC.Editor
             sceneList.Add(CreateSceneConfig("M004", "Assets/Maps/maps/M004/Scenes"));
             sceneList.Add(CreateSceneConfig("M006", "Assets/Maps/maps/M006/Scenes"));
 
-            sceneList.Add(CreateSceneConfig("002", "Assets/Maps/maps/0001/Scenes", true, true, "002 {0}x{1}",1,false,0.9f, 8, 10));
+            sceneList.Add(CreateSceneConfig("002", "Assets/Maps/maps/0001/Scenes", true, true, "002 {0}x{1}",2,false,0.9f, 8, 10));
             /*config.indices.Add(new Index(2, 1));
             config.indices.Add(new Index(2, 2));
             config.indices.Add(new Index(2, 5));

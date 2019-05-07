@@ -39,44 +39,13 @@ namespace OC.Editor
         //bool IsCustomVolume = false;
         //Vector3 volumeCenter = Vector3.zero;
         //Vector3 volumeSize = Vector3.one;
-
-
-
         [MenuItem("OC/OCBakeWindow")]
         private static void ShowWindow() {
             var window = GetWindow<OCBakeWindow>();
             window.titleContent = new GUIContent("OCBakeWindow");
             window.Show();
         }
-
-        public void InitConfig()
-        {
-            //Config.CellSize = cellSize;
-            //Config.IsBatchMode = false;
-            //Config.UseComputeShader = true;
-            //Config.mergeCell = IsMergeCell;
-            //Config.CellWeight = cellMergeWeight;
-            //Config.mergeObjectID = IsMergeObjectID;
-            //Config.mergeObjectDistance = mergeDistance;
-            //Config.mergeObjectMaxSize = mergeObjectSize;
-            //Config.ScreenWidth = screenWidth;
-            //Config.ScreenHeight = screenHeight;
-            //Config.SimpleGenerateCell = IsSimpleGenerateCell;
-            // Config.SoftRenderer = IsSoftRenderer;
-            //Config.UseComputeShader = IsUseComputeShader;
-            //Config.UseVisibleCache = IsUseVisibleCache;
-            //Config.ComputePerframe = IsFrameBake;
-            //Config.ComputeShader = ComputeShader;
-            //Config.CustomVolume = IsCustomVolume;
-            //Config.CustomVolumeCenter= volumeCenter;
-            //Config.CustomVolumeSize = volumeSize;
-            // Config.IgnoreFailureOnTileInit ;
-            //Config.MaxPlayAreaHeight = maxPlayAreaHeight;
-            //Config.MinPlayAreaHeight = minPlayAreaHeight;
-            // Config.ClearLightProbes = ;
-            //Config.PerframeExecCount = frameCellCount;
-            
-        }
+    
         private void OnGUI() 
         {
              //GUILayout.Label("scene name", EditorStyles.boldLabel);
@@ -184,9 +153,9 @@ namespace OC.Editor
                     }
 
                     streamScene = new MultiScene( config.SceneAssetPath, config.SceneNamePattern, TileDimension, config.TileSize, data);
-                    for(int i=0; i< 8; i++)
-                        for(int j=0; j< 8; j++)
-                    streamScene.Load(i, j);
+                    for(int i=0; i< 2; i++)
+                        for(int j=0; j< 2; j++)
+                            streamScene.Load(i, j);
                   
                 }
                 else
@@ -199,17 +168,38 @@ namespace OC.Editor
             if (GUILayout.Button("LoadAllOCData"))
             {
                 OCSceneConfig config = OCGenerator.GetMapConfig(sceneName);
-                if(config.IsStreamScene)
+                if (config.IsStreamScene)
                 {
-                    streamScene = new OC.MultiScene(config.SceneAssetPath, config.SceneNamePattern, config.TileDimension, config.TileSize);
-                    streamScene.TestLoadAll();
+                    var ocDataFilePath = MultiScene.GetOCDataFilePath(config.SceneAssetPath, config.SceneNamePattern);
+                    if (!File.Exists(ocDataFilePath))
+                    {
+                        EditorUtility.DisplayDialog("文件不存在", string.Format("OC 数据文件 {0} 不存在!", ocDataFilePath), "确定");
+                        return;
+                    }
+                    int TileDimension = config.TileDimension;
+                    byte[] data = null;
+                    using (var fileStream = File.Open(ocDataFilePath, FileMode.Open))
+                    {
+                        data = new byte[fileStream.Length];
+                        if (fileStream.Read(data, 0, data.Length) != data.Length)
+                        {
+                            EditorUtility.DisplayDialog("文件读取失败", string.Format("读取 OC 数据文件 {0} 失败!", ocDataFilePath), "确定");
+                            return;
+                        }
+                    }
+
+                    streamScene = new MultiScene(config.SceneAssetPath, config.SceneNamePattern, TileDimension, config.TileSize, data);
+                    for (int i = 0; i < 8; i++)
+                        for (int j = 0; j < 8; j++)
+                            streamScene.Load(i, j);
+
                 }
                 else
                 {
                     singleScene = new OC.SingleScene(config.SceneAssetPath, config.SceneNamePattern, null);
                     singleScene.TestLoad();
                 }
-                
+
             }
 
             if (GUILayout.Button("EnableOC"))

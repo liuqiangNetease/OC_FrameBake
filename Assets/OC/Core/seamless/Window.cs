@@ -45,21 +45,6 @@ namespace OC
             _radius = radius;
         }
 
-        ~Window()
-        {
-            foreach (var pair in tileMap)
-            {
-                Tile tile = pair.Value;
-                if (tile != null)
-                {
-                    tile.RemoveWindow(this);
-                }
-            }
-            tileMap.Clear();
-        }
-
-        
-
         public void InitPosition(Vector2 pos)
         {
             if (_owner.IsValidPosition(pos))
@@ -105,8 +90,7 @@ namespace OC
         {
             foreach (var pair in tileMap)
             {
-                Tile tile = pair.Value;
-                tile.RemoveWindow(this);
+                Tile tile = pair.Value;              
                 _owner.UnloadTile(tile);
             }
             tileMap.Clear();
@@ -145,7 +129,6 @@ namespace OC
                     {
                         if (IsContains(tile.TileIndex) == false)
                         {
-                            tile.RemoveWindow(this);
                             _owner.UnloadTile(tile);
                         }
                     }
@@ -167,17 +150,10 @@ namespace OC
                     Tile tile = pair.Value;
                     if (tile != null)
                     {
-                        bool success = _owner.InitOnLoad(tile);
+                        initSuccess = _owner.InitOnLoad(tile);
 
-                        if (!success)
+                        if (!initSuccess)
                         {
-                            if (!Config.IgnoreFailureOnTileInit)
-                            {
-                                Debug.LogErrorFormat("Init Tile {0} failed", tile.TileIndex);
-                                initSuccess = false;
-                                break;
-                            }
-
                             Debug.LogWarningFormat("Init Tile {0} failed", tile.TileIndex);
                         }
                     }
@@ -219,8 +195,7 @@ namespace OC
                     if (tile != null)
                     {
                         if (IsContains(tile.TileIndex) == false)
-                        {
-                            tile.RemoveWindow(this);
+                        {                          
                             _owner.UnloadTile(tile);
                         }
                     }
@@ -242,17 +217,10 @@ namespace OC
                     Tile tile = pair.Value;
                     if (tile != null)
                     {
-                        bool success = _owner.InitOnLoad(tile);
+                        initSuccess = _owner.InitOnLoad(tile);
 
-                        if (!success)
+                        if (!initSuccess)
                         {
-                            if (!Config.IgnoreFailureOnTileInit)
-                            {
-                                Debug.LogErrorFormat("Init Tile {0} failed", tile.TileIndex);
-                                initSuccess = false;
-                                break;
-                            }
-                            
                             Debug.LogWarningFormat("Init Tile {0} failed", tile.TileIndex);
                         }
                     }
@@ -285,8 +253,7 @@ namespace OC
                     {
                         Tile tile = _owner.GetOrCreateTile(workIndex);
                         if (tile != null)
-                        {
-                            tile.AddWindow(this);                    
+                        {                                                
                             tileMap[workIndex] = tile;
                         }
 

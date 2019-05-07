@@ -206,7 +206,7 @@ namespace OC.Editor
             Config.ScreenHeight = ScreenHeight;
             Config.CellSize = CellSize;
             Config.UseVisibleCache = UseVisibleCache;
-            Config.IgnoreFailureOnTileInit = false;
+     
             Config.SavePerCell = SavePerCell;
             Config.ClearOnSave = ClearOnSave;
             Config.ComputePerframe = ComputePerframe;

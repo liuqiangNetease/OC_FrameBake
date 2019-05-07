@@ -16,7 +16,6 @@ namespace OC
         public static int PerframeExecCount = 3000;
         public static int ScreenWidth = 640;
         public static int ScreenHeight = 480;
-        public static bool IgnoreFailureOnTileInit = true;
 
         public static bool mergeObjectID = false;
         public static float mergeObjectDistance = 1.0f;

@@ -258,7 +258,7 @@ namespace OC
 
             for (int i = 0; i < filterMeshTris.Count; i++)
             {
-                var renderer = filterMeshTris[i].renderer;
+                //var renderer = filterMeshTris[i].renderer;
 
                 //if (IsVisible(renderer) == false)
                     //continue;
@@ -409,7 +409,7 @@ namespace OC
             for (int i = 0; i < mesh.subMeshCount; i++)
             {
                 int[] indices = mesh.GetIndices(i);
-                int[] tris = mesh.GetTriangles(i);
+                //int[] tris = mesh.GetTriangles(i);
 
                 for (int j = 0; j < indices.Length; j++)
                 {

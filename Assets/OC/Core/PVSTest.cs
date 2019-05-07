@@ -139,8 +139,8 @@ namespace OC
                 }
 
                 streamScene = new MultiScene(config.SceneAssetPath, config.SceneNamePattern, TileDimension, config.TileSize, data);
-                for (int i = 0; i < 2; i++)
-                    for (int j = 0; j < 2; j++)
+                for (int i = 0; i < config.TileDimension; i++)
+                    for (int j = 0; j < config.TileDimension; j++)
                         streamScene.Load(i, j);
             }
             else
@@ -264,7 +264,7 @@ namespace OC
 
         void MoveCamera(SingleScene scene, Texture2D tex, Vector3 pos)
         {
-            bool bSame = true;
+            //bool bSame = true;
 
             cam.transform.position = pos;
             bool bSameF = RotateCameraAndRender(scene, tex, Vector3.forward);
