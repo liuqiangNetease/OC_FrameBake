@@ -56,7 +56,7 @@ namespace OC.Editor
 
         public void TestPVS()
         {
-            var config = GetMapConfig(gameObject.scene.name);
+            var config = GetSceneConfig(gameObject.scene.name);
             if(config.MapName == string.Empty)
             {
                 config.IsStreamScene = false;
@@ -67,25 +67,25 @@ namespace OC.Editor
             testPVS.Test(TestCellCount);
         }
 
-        public void GenerateFixedSceneOCData()
+        public void BakeSingleScene()
         {            
-            var config = GetMapConfig(gameObject.scene.name);
+            var config = GetSceneConfig(gameObject.scene.name);
 
             if (config.MapName == string.Empty)
             {
                 InitConfig();
-                _scene = new SingleScene(GetScenePath(), gameObject.scene.name);
+                _scene = new SingleScene(GetScenePath(), gameObject.scene.name, Index.InValidIndex);
                 _scene.Bake(Config.ComputePerframe);
             }
             else
             {
                 ConfigGenerator(config);
-                _scene = new SingleScene(config.SceneAssetPath, config.SceneNamePattern, null);
+                _scene = new SingleScene(config.SceneAssetPath, config.SceneNamePattern, Index.InValidIndex);
                 _scene.Bake(config.ComputePerframe);
             }
         }
 
-        public void GenerateStreamSceneOCData()
+        public void BakeStreamScene()
         {
             InitConfig();
 
@@ -141,18 +141,7 @@ namespace OC.Editor
                 Debug.LogErrorFormat("Can not get stream scene index for scene name pattern {0} of scene name", StreamSceneNamePattern, GetSceneName());
             }
         }
-
-        public void MergeStreamSceneOCData()
-        {
-            if (!Directory.Exists(StreamOCTemporaryContainer))
-            {
-                EditorUtility.DisplayDialog("临时文件夹不存在", String.Format("临时文件夹 {0} 不存在！", StreamOCTemporaryContainer), "确定");
-                return;
-            }
-
-            const int TileDimension = 8;
-            OCGenerator.MergeStreamSceneOCData(GetScenePath(), StreamSceneNamePattern, StreamOCTemporaryContainer, TileDimension);
-        }
+        
 
         private bool GetStreamSceneIndex(int tileDimension, out int x, out int y)
         {

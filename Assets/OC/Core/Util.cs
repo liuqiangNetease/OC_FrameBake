@@ -244,6 +244,36 @@ namespace OC
             ret = File.ReadAllText(path);
             return ret;
         }
+
+        public static void CopyTo(string sourceFilePath, string destFilePath)
+        {
+            Debug.LogFormat("Copy file from {0} to {1}", sourceFilePath, destFilePath);
+
+            if (!File.Exists(sourceFilePath))
+            {
+                Debug.LogErrorFormat("The file does not exist {0}", sourceFilePath);
+                throw new Exception(String.Format("Source File {0} does not exist, can not copy to {1}", sourceFilePath, destFilePath));
+            }
+
+            if (File.Exists(destFilePath))
+            {
+                File.Delete(destFilePath);
+            }
+
+            File.Copy(sourceFilePath, destFilePath);
+        }
+
+        public static string GetObjectPath(Transform trans)
+        {
+            var path = trans.name;
+            while (trans.parent != null)
+            {
+                trans = trans.parent;
+                path = string.Format("{0}/{1}", trans.name, path);
+            }
+
+            return path;
+        }
 #endif
 
 

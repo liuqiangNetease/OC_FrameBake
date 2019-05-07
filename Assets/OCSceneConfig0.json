@@ -1,29 +1,24 @@
 {
-    "MapName": "002",
+    "MapName": "sTest",
     "CellSize": 2.0,
     "ScreenWidth": 600,
     "ScreenHeight": 600,
     "MaxPlayerHeight": 2.5,
     "MinPlayerHeight": 0.0,
-    "SceneAssetPath": "Assets/Maps/maps/0001/Scenes",
-    "SceneNamePattern": "002 {0}x{1}",
+    "SceneAssetPath": "Assets/Scene",
+    "SceneNamePattern": "sTest",
     "TemporaryContainer": "D:/OCTemp",
     "MergeCell": false,
     "MergeCellWeight": 0.8999999761581421,
     "MergeObjectID": false,
     "MergeObjectSize": 1.0,
     "MergeObjectDistance": 1.0,
-    "IsStreamScene": true,
+    "IsStreamScene": false,
     "UseComputeShader": true,
     "UseVisbileCache": true,
     "ComputePerframe": true,
     "PerframeExecCount": 100,
-    "TileDimension": 8,
-    "TileSize": 10,
-    "indices": [
-        {
-            "x": 0,
-            "y": 0
-        }
-    ]
+    "TileDimension": 0,
+    "TileSize": 1000,
+    "indices": []
 }

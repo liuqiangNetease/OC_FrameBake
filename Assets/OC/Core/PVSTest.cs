@@ -145,7 +145,7 @@ namespace OC
             }
             else
             {
-                singleScene = new OC.SingleScene(config.SceneAssetPath, config.SceneNamePattern, null);
+                singleScene = new OC.SingleScene(config.SceneAssetPath, config.SceneNamePattern, Index.InValidIndex);
                 singleScene.TestLoad();
             }
             

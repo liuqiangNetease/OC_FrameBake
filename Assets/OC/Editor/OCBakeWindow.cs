@@ -123,7 +123,7 @@ namespace OC.Editor
 
             if (GUILayout.Button("TestPVS"))
             {
-                OCSceneConfig config = OCGenerator.GetMapConfig(sceneName);
+                OCSceneConfig config = OCGenerator.GetSceneConfig(sceneName);
                 PVSTest test = new PVSTest(Camera.main, config);
                 test.Test(-1);
             }
@@ -131,7 +131,7 @@ namespace OC.Editor
             if (GUILayout.Button("TestLoadOCData"))
             {
 
-                OCSceneConfig config = OCGenerator.GetMapConfig(sceneName);
+                OCSceneConfig config = OCGenerator.GetSceneConfig(sceneName);
                 if (config.IsStreamScene)
                 {
                     var ocDataFilePath = MultiScene.GetOCDataFilePath(config.SceneAssetPath, config.SceneNamePattern);
@@ -160,14 +160,14 @@ namespace OC.Editor
                 }
                 else
                 {
-                    singleScene = new OC.SingleScene(config.SceneAssetPath, config.SceneNamePattern, null);
+                    singleScene = new OC.SingleScene(config.SceneAssetPath, config.SceneNamePattern, Index.InValidIndex);
                     singleScene.TestLoad();
                 }
             }
 
             if (GUILayout.Button("LoadAllOCData"))
             {
-                OCSceneConfig config = OCGenerator.GetMapConfig(sceneName);
+                OCSceneConfig config = OCGenerator.GetSceneConfig(sceneName);
                 if (config.IsStreamScene)
                 {
                     var ocDataFilePath = MultiScene.GetOCDataFilePath(config.SceneAssetPath, config.SceneNamePattern);
@@ -196,7 +196,7 @@ namespace OC.Editor
                 }
                 else
                 {
-                    singleScene = new OC.SingleScene(config.SceneAssetPath, config.SceneNamePattern, null);
+                    singleScene = new OC.SingleScene(config.SceneAssetPath, config.SceneNamePattern, Index.InValidIndex);
                     singleScene.TestLoad();
                 }
 
@@ -204,7 +204,7 @@ namespace OC.Editor
 
             if (GUILayout.Button("EnableOC"))
             {
-                OCSceneConfig config = OCGenerator.GetMapConfig(sceneName);
+                OCSceneConfig config = OCGenerator.GetSceneConfig(sceneName);
                 if(config.IsStreamScene)
                 {
                     if (streamScene == null)
@@ -229,7 +229,7 @@ namespace OC.Editor
             }
             if (GUILayout.Button("DisableOC"))
             {
-                OCSceneConfig config = OCGenerator.GetMapConfig(sceneName);
+                OCSceneConfig config = OCGenerator.GetSceneConfig(sceneName);
                 if (config.IsStreamScene)
                 {
                     if (streamScene == null)
@@ -248,6 +248,11 @@ namespace OC.Editor
                         singleScene.UndoDisabledObjects();                        
                     }
                 }
+            }
+
+            if(GUILayout.Button("TestApplyOCData"))
+            {
+                OCGenerator.TestApplyOCData(sceneName);
             }
         }
     }

@@ -2,15 +2,16 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+using OC;
 public class OCTest : MonoBehaviour {
 
-    OC.SingleScene scene;
+    SingleScene scene;
 
     public bool OC = true;
 	// Use this for initialization
 	void Start () {
-        var name = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
-        scene = new OC.SingleScene("", name, null);
+        var name = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;      
+        scene = new SingleScene("", name, Index.InValidIndex);
         scene.Load();
 		
 	}

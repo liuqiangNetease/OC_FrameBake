@@ -31,7 +31,7 @@ namespace OC
 
         private Vector3 OldCameraPos;
 
-        static string tempPath = "D:/OCTemp";
+        public string tempPath;
 
         public int GetNeighborSceneMaxObjectId(Index index)
         {
@@ -59,20 +59,18 @@ namespace OC
             set { path = value; }
         }
 
-        public SingleScene(string path, string name, World owner = null) :
-            this(path, name, Index.InValidIndex, 1000, null, owner)
+        public SingleScene(string path, string name, Index index, byte[] data = null, World owner = null) :
+            base(index, data, owner)
         {
+            tempPath = "";
+
             IsPrepared = false;
             IsFinish = false;
 
             curBakeVolume = 0;
 
             tree = null;
-        }
 
-        public SingleScene(string path, string name, Index index, int tileDimension, byte[] data, World owner) :
-            base(index, tileDimension, data, owner)
-        {
             IsPrepared = false;
             IsFinish = false;
 
@@ -178,7 +176,6 @@ namespace OC
             {
                 Cell.FinishToGetRenderableModels();
 
-
                 EditorApplication.update -= ComputePVS;
                 RestoreCamera();
 
@@ -186,7 +183,11 @@ namespace OC
 
                 EditorUtility.ClearProgressBar();
 
-                CopyOCDataTo(tempPath);
+                if(tempPath != "")
+                {
+                    CopyOCDataTo(tempPath);
+                    OC.Editor.OCGenerator.GenerateSceneOCDiffPatch(Name, tempPath);
+                }
             }
         }
 
@@ -308,37 +309,10 @@ namespace OC
             }
         }
 
-        public void CopyOCDataTo(string temporaryContainer)
-        {
-            if (!Directory.Exists(temporaryContainer))
-            {
-                Directory.CreateDirectory(temporaryContainer);
-            }
-
-            var filePath = GetOCDataFilePath();
-            var fileName = GetOCDataFileName(Name);
-            var destFilePath = System.IO.Path.Combine(temporaryContainer, fileName);
-            if (File.Exists(filePath))
-            {
-                if (File.Exists(destFilePath))
-                {
-                    File.Delete(destFilePath);
-                }
-
-                File.Copy(filePath, destFilePath);
-            }
-            else
-            {
-                Debug.LogErrorFormat("OC data file {0} does not exist!", filePath);
-            }
-            
-        }
-
         private bool Progress(string strTitle, string strMessage, float fT)
         {
             return EditorUtility.DisplayCancelableProgressBar(strTitle, strMessage, fT);
         }
-
 
         private bool ComputeVolumeCells()
         {
@@ -1094,6 +1068,32 @@ namespace OC
             }
 
             return cell;
+        }
+
+        public void CopyOCDataTo(string temporaryContainer)
+        {
+            if (!Directory.Exists(temporaryContainer))
+            {
+                Directory.CreateDirectory(temporaryContainer);
+            }
+
+            var filePath = GetOCDataFilePath();
+            var fileName = GetOCDataFileName(Name);
+            var destFilePath = System.IO.Path.Combine(temporaryContainer, fileName);
+            if (File.Exists(filePath))
+            {
+                if (File.Exists(destFilePath))
+                {
+                    File.Delete(destFilePath);
+                }
+
+                File.Copy(filePath, destFilePath);
+            }
+            else
+            {
+                Debug.LogErrorFormat("OC data file {0} does not exist!", filePath);
+            }
+
         }
     }
 

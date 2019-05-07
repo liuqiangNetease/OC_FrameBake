@@ -39,23 +39,15 @@ namespace OC
         private int _blockIndex;
         private byte[] _data;
 
-        public Tile(World owner) :
-            this(null, owner)
-        {
-            
-        }
 
-        public Tile(byte[] data, World owner):
-            this(Index.InValidIndex, 1000, data, owner)
+        public Tile(Index index, byte[] data = null, World owner = null)
         {
-            
-        }
+            _index = index;
 
-        public Tile(Index index, int tileDimension, byte[] data, World owner)
-        {
-            _index = index;       
-
-            _blockIndex = _index.x * tileDimension + index.y;
+            if (owner == null)
+                _blockIndex = 0;
+            else
+                _blockIndex = _index.x * owner.TileDimension + index.y;
             _data = data;
 
             _owner = owner;

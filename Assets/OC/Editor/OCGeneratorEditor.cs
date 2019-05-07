@@ -225,18 +225,13 @@ namespace OC.Editor
             if (GUILayout.Button("Test PVS"))
             {
                 generator.TestPVS();
-            }
-
-            if (GUILayout.Button("Generate TestStreamScenes"))
-            {
-                //generator.GenerateTestStreamScenes("Assets/Scene/001/");
-            }
+            }          
 
             if (PropIsFixedScene.boolValue)
             {
                 if (GUILayout.Button("Generate OC Data (Fixed) "))
                 {
-                    generator.GenerateFixedSceneOCData();
+                    generator.BakeSingleScene();
                 }     
             }
             else
@@ -254,17 +249,12 @@ namespace OC.Editor
 
                 if (GUILayout.Button("Generate OC Data (Stream)"))
                 {
-                    generator.GenerateStreamSceneOCData();
-                }
-
-                if (GUILayout.Button("Merge OC Data(Stream)"))
-                {
-                    generator.MergeStreamSceneOCData();
-                }
+                    generator.BakeStreamScene();
+                }              
 
                 if (GUILayout.Button("Load OC Data (Stream)"))
                 {
-                    generator.LoadStreamSceneOCData();
+                    generator.BakeStreamScene();
                 }
             }
 

@@ -53,13 +53,8 @@ namespace OC
         private int _tileSize;
         private byte[] _data;
 
-        public MultiScene(string path, string namePattern, int tileDimension, int tileSize):
-            this(path, namePattern, tileDimension, tileSize, null)
-        {
-            
-        }
 
-        public MultiScene(string path, string namePattern, int tileDimension, int tileSize, byte[] data)
+        public MultiScene(string path, string namePattern, int tileDimension, int tileSize, byte[] data = null)
         {
             curBakeScene = 0;
             _window = null;
@@ -174,7 +169,7 @@ namespace OC
          public override Tile BuildTile(Index index)
         {
             string sceneName = GetSceneName(index.x, index.y);
-            var ret = new SingleScene(Path, sceneName, index, _tileDimension, _data, this);
+            var ret = new SingleScene(Path, sceneName, index, _data, this);
             return ret;
         }
 
@@ -385,7 +380,7 @@ namespace OC
             {
                 sceneName = GetSceneName(x, y);
                 var index = new Index(x, y);
-                tile = new SingleScene(Path, sceneName, index, _tileDimension, _data, this);
+                tile = new SingleScene(Path, sceneName, index, _data, this);
                 tileMap.Add(index, tile);
             }
 
@@ -462,7 +457,7 @@ namespace OC
                 }
             }
         }
-#if UNITY_EDITOR
+/*#if UNITY_EDITOR
         public void TestLoadAll()
         {
             int tileX = _tileDimension, tileY = _tileDimension;
@@ -476,14 +471,14 @@ namespace OC
                 {
                     string sceneName = GetSceneName(i, j);
                     var index = new Index(i, j);
-                    var scene = new SingleScene(Path, sceneName, index, _tileDimension, _data, this);
+                    var scene = new SingleScene(Path, sceneName, index, _data, this);
                     scene.Open();
                     scene.Load();
 
                     tileMap[index] = scene;
                 }
         }
-#endif
+#endif*/
 
         /*public void Load()
         {
