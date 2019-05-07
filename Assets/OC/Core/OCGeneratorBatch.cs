@@ -203,7 +203,7 @@ namespace OC.Editor
                 filePath = otherFilePath;
             }
 
-            string templateContent = LoadJson(filePath);
+            string templateContent = Util.LoadJson(filePath);
 
             var scenesConfig = JsonUtility.FromJson<OCScenesConfig>(templateContent);
 
@@ -319,7 +319,7 @@ namespace OC.Editor
                 return ret;
             }
 
-            string jsonContent = LoadJson(filePath);
+            string jsonContent = Util.LoadJson(filePath);
 
             ret = JsonUtility.FromJson<OCSceneConfig>(jsonContent);
 
@@ -343,7 +343,7 @@ namespace OC.Editor
         private static bool OpenAllScenes(string mapName, int tileX, int tileY)
         {
             //close existed scenes 
-            ClearScenes();
+            Util.ClearScenes();
 
             //open new scenes
             var config = GetMapConfig(mapName);
@@ -380,7 +380,7 @@ namespace OC.Editor
 
             foreach (var sceneName in sceneNames)
             {
-                if (!IsSceneOpened(sceneName))
+                if (! Util.IsSceneOpened(sceneName))
                 {
                     Debug.LogFormat("Open Scene {0}...", sceneName);
                     EditorSceneManager.OpenScene(sceneName, OpenSceneMode.Additive);
@@ -416,7 +416,7 @@ namespace OC.Editor
         private static void GenerateOCDataForFixedScene(OCSceneConfig config)
         {
             ConfigGenerator(config);
-            if (!IsSceneOpened(config.SceneNamePattern))
+            if (! Util.IsSceneOpened(config.SceneNamePattern))
             {
                 Debug.LogFormat("Open Scene {0}", config.SceneNamePattern);
                 EditorSceneManager.OpenScene(String.Format("{0}/{1}.unity", config.SceneAssetPath, config.SceneNamePattern));
@@ -504,32 +504,14 @@ namespace OC.Editor
             return path;
         }
 
-        private static void BakeAll(OCSceneConfig config)
-        {
-            ConfigGenerator(config);
-            var tiles = config.indices;
-            if (tiles != null)
-            {
-                var multiScene = new MultiScene(config.SceneAssetPath, config.SceneNamePattern, config.TileDimension, config.TileSize);
-                multiScene.BakeAll();                
-            }
-            else
-            {
-                Debug.LogErrorFormat("Can not get bake tiles for map {0}", config.MapName);
-                ExitOnBatchMode();
-            }
-        }
-
         private static void GenerateOCDataForStreamScene(OCSceneConfig config)
         {
             ConfigGenerator(config);
             var tiles = config.indices;
             if (tiles != null)
             {
-                var multiScene = new MultiScene(config.SceneAssetPath, config.SceneNamePattern, config.TileDimension, config.TileSize);
-                //multiScene.BakeAll(config.TileSize, config.TileDimension); 
-                foreach(var tile in tiles)
-                    multiScene.BakeOne(tile.x, tile.y);
+                var multiScene = new MultiScene(config.SceneAssetPath, config.SceneNamePattern, config.TileDimension, config.TileSize);            
+                multiScene.BakeTiles(tiles, config.ComputePerframe);
             }
             else
             {
@@ -543,7 +525,7 @@ namespace OC.Editor
         private static void OpenStreamScene(string path, string sceneNamePattern, int x, int y, int tileDimension)
         {
             //close previous scene
-            ClearScenes();
+            Util.ClearScenes();
 
             bool additive = false;
             int startx = x >= 1 ? x - 1 : 0;
@@ -556,7 +538,7 @@ namespace OC.Editor
                 for (int yi = starty; yi <= endy; ++yi)
                 {
                     var sceneName = String.Format(sceneNamePattern, xi, yi);
-                    if (!IsSceneOpened(sceneName))
+                    if (! Util.IsSceneOpened(sceneName))
                     {
                         Debug.LogFormat("Open Scene {0}", sceneName);
                         EditorSceneManager.OpenScene(String.Format("{0}/{1}.unity", path, sceneName), additive ? OpenSceneMode.Additive : OpenSceneMode.Single);
@@ -566,37 +548,8 @@ namespace OC.Editor
             }
         }
 
-        private static void ClearScenes()
-        {
-            if (!IsSceneOpened(String.Empty))
-            {
-                var emptyScene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
 
-                var roots = emptyScene.GetRootGameObjects();
-                foreach (var root in roots)
-                {
-                    GameObject.DestroyImmediate(root);
-                }
-            }
-
-            while (SceneManager.sceneCount > 1)
-            {
-                for (int i = 0; i < SceneManager.sceneCount; ++i)
-                {
-                    var openedScene = SceneManager.GetSceneAt(i);
-                    if (openedScene.name.Equals(String.Empty))
-                    {
-                        continue;
-                    }
-
-                    Debug.LogFormat("Cloese Scene {0}", openedScene.name);
-                    EditorSceneManager.CloseScene(openedScene, true);
-                    break;
-                }
-            }
-
-            Debug.LogFormat("Remove unrelated scene left scene count {0}", SceneManager.sceneCount);
-        }
+        
 
         private static void InitScene(string sceneName, bool isStreamScene)
         {
@@ -664,7 +617,7 @@ namespace OC.Editor
                 return false;
             }
 
-            ClearScenes();
+            Util.ClearScenes();
 
             Debug.LogFormat("Apply OC Diff Patch For Scene {0}...", sceneName);
             var scenePath = String.Format("{0}/{1}.unity", path, sceneName);
@@ -868,11 +821,6 @@ namespace OC.Editor
         private static bool IsApproximatelySame(float f0, float f1)
         {
             return Math.Abs(f0 - f1) <= 1e-4f;
-        }
-
-        private static bool IsSceneOpened(string sceneName)
-        {
-            return SceneManager.GetSceneByName(sceneName).isLoaded;
         }
 
         private static void ConfigGenerator(OCSceneConfig config)

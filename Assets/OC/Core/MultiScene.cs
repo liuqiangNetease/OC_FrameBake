@@ -23,6 +23,9 @@ namespace OC
 
     public class MultiScene: World
     {
+        int curBakeScene;
+        List<Index> bakeTiles;
+        Window _window;
 
         private string _namePattern;
         public string NamePattern
@@ -58,6 +61,9 @@ namespace OC
 
         public MultiScene(string path, string namePattern, int tileDimension, int tileSize, byte[] data)
         {
+            curBakeScene = 0;
+            _window = null;
+
             Path = path;
             NamePattern = namePattern;
 
@@ -82,7 +88,7 @@ namespace OC
             }
         }
 
-        public void BakeOne(int x, int y)
+        /*public void BakeOne(int x, int y)
         {
             //int tileX = 8, tileY = 8;
             //int tileSizeX = tileSize;
@@ -92,7 +98,7 @@ namespace OC
             Window window = new Window(this, 1);
             Index mainIndex = new Index(x, y);
             window.Init(mainIndex);
-            window.Bake();
+            window.Bake(Config.ComputePerframe);
           
         }
 
@@ -107,9 +113,9 @@ namespace OC
                 //Window window = new Window(this, 1);
                 Index mainIndex = new Index(i, j);
                 window.Init(mainIndex);
-                window.Bake();
+                window.Bake(false);
             }
-        }
+        }*/
 
         public Cell GetCurrentCell(Vector3 pos)
         {
@@ -370,7 +376,7 @@ namespace OC
             return outputName;
         }
 #endif
-        public bool Load(int x, int y, Action<int, int> OnPVSLoaded, bool block)
+        public bool Load(int x, int y, Action<int, int> OnPVSLoaded = null)
         {
 
             Tile tile;
@@ -457,7 +463,7 @@ namespace OC
             }
         }
 #if UNITY_EDITOR
-        public void TestLoad()
+        public void TestLoadAll()
         {
             int tileX = _tileDimension, tileY = _tileDimension;
             int tileSizeX = _tileSize;
@@ -479,7 +485,7 @@ namespace OC
         }
 #endif
 
-        public void Load()
+        /*public void Load()
         {
             int tileX = _tileDimension, tileY = _tileDimension;
             int tileSizeX = _tileSize;
@@ -496,7 +502,7 @@ namespace OC
                 tile.DoLoad();
                 tileMap[index] = tile;              
             }
-        }
+        }*/
 
 
 
@@ -507,6 +513,56 @@ namespace OC
                 var scene = pair.Value as SingleScene;
                 scene.UndoDisabledObjects();
             }
+        }
+
+        private void FrameBake()
+        {
+            if (curBakeScene >= bakeTiles.Count)
+            {
+                //finish
+                EditorApplication.update -= FrameBake;
+                return;
+            }
+   
+            for (int i = curBakeScene; i < bakeTiles.Count; i++)
+            {
+                var index = bakeTiles[i];           
+
+                _window.Update(bakeTiles[i]);
+                if (_window.Bake(true) == false)
+                {
+                    break;
+                }
+                curBakeScene++;
+            }          
+        }
+
+        public bool BakeTiles(List<Index> indices, bool bFrame)
+        {
+            if (indices.Count <= 0)
+                return false;
+
+            Util.ClearScenes();
+
+            if(bFrame)
+            {
+                _window = new Window(this, 1);
+                _window.Init(indices[0]);
+                bakeTiles = indices;
+                EditorApplication.update += FrameBake;   
+            }
+            else
+            {
+                Window window = new Window(this, 1);
+                window.Init(indices[0]);
+                for (int i=0; i< indices.Count; i++)
+                {
+                    window.Update(indices[i]);
+                    window.Bake(false);
+                }
+            }           
+           
+            return true;
         }
     }
 }

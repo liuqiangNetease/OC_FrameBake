@@ -19,9 +19,8 @@ namespace OC.Editor
 
         private SerializedProperty PropClearLightmapping;
         private SerializedProperty PropClearLightProbes;
-        private SerializedProperty PropUseComputeShader;
-        
-        private SerializedProperty PropComputeShader;
+        private SerializedProperty PropUseComputeShader;        
+     
         private SerializedProperty PropUseVisibleCache;
         private SerializedProperty PropSavePerCell;
         private SerializedProperty PropClearOnSave;
@@ -32,15 +31,12 @@ namespace OC.Editor
         private SerializedProperty PropStreamOCTemporaryContainer;
         private SerializedProperty PropStreamSceneNamePattern;
 
-        private SerializedProperty PropTestCells;
-        private SerializedProperty PropUseRecalcResult;
-        private SerializedProperty PropTestPosition;
+
 
         private SerializedProperty PropCustomVolume;
         private SerializedProperty PropCustomVolumeCenter;
         private SerializedProperty PropCustomVolumeSize;
 
-        private SerializedProperty PropTargetTexture;
 
         private SerializedProperty PropTestCellCount;
 
@@ -67,8 +63,7 @@ namespace OC.Editor
             PropClearLightmapping = serializedObject.FindProperty("ClearLightmapping");
             PropClearLightProbes = serializedObject.FindProperty("ClearLightProbes");
 
-            PropUseComputeShader = serializedObject.FindProperty("UseComputeShader");
-            PropComputeShader = serializedObject.FindProperty("ComputeShader");
+            PropUseComputeShader = serializedObject.FindProperty("UseComputeShader");         
             PropUseVisibleCache = serializedObject.FindProperty("UseVisibleCache");
             PropSavePerCell = serializedObject.FindProperty("SavePerCell");
             PropClearOnSave = serializedObject.FindProperty("ClearOnSave");
@@ -133,18 +128,7 @@ namespace OC.Editor
                 PropSoftRasterization.boolValue);
 
 
-            if (PropUseComputeShader.boolValue)
-            {
-                if (PropComputeShader.objectReferenceValue == null)
-                {
-                    PropComputeShader.objectReferenceValue = OCGenerator.GetOCVisComputeShader();
-                }
 
-                EditorGUILayout.ObjectField(PropComputeShader,
-                   typeof(ComputeShader),
-                   new GUIContent("Compute Shader",
-                   "Compute Shader To Get Visible Set"));
-            }
 
             PropUseVisibleCache.boolValue = EditorGUILayout.Toggle(
                 new GUIContent("Use Visible Cache",
@@ -272,12 +256,6 @@ namespace OC.Editor
                 {
                     generator.GenerateStreamSceneOCData();
                 }
-
-                if (GUILayout.Button("Generate All OC Data (Stream)"))
-                {
-                    //generator.BakeAll("002", 10, 8);
-                }
-           
 
                 if (GUILayout.Button("Merge OC Data(Stream)"))
                 {

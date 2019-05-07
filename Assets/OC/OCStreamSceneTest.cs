@@ -14,7 +14,7 @@ public class OCStreamSceneTest : MonoBehaviour {
 	void Start () {
         //var name = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
         scene = new OC.MultiScene("Assets/Maps/maps/0001/Scenes", "002 {0}x{1}", tileDim, tileSize);
-        scene.TestLoad();
+        scene.TestLoadAll();
 		
 	}
 	

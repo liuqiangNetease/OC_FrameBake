@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using System.IO;
 
 namespace OC.Editor
 {
@@ -11,8 +12,8 @@ namespace OC.Editor
 
         SingleScene singleScene;
 
-        string sceneName;
-        int processNumber = 8;
+        string sceneName = "002";
+        int processNumber = 4;
         //int screenWidth = 600;
         //int screenHeight = 600;
 
@@ -116,12 +117,12 @@ namespace OC.Editor
             //volumeSize = EditorGUILayout.Vector3Field("volume size", volumeSize);
             //EditorGUILayout.EndToggleGroup();
 
-            if (GUILayout.Button("Generate test stream scene"))
+            if (GUILayout.Button("test create stream scene"))
             {              
                 OCGenerator.GenerateTestStreamScenes("Assets/Maps/maps/0001/Scenes/");
             }
 
-            if (GUILayout.Button("tempCreateScenesJson"))
+            if (GUILayout.Button("TestCreateAllScenesJson"))
             {
                 OCGenerator.TestCreateScensJson();               
             }
@@ -133,33 +134,75 @@ namespace OC.Editor
 
             if (GUILayout.Button("TestInitConfig(open scenes and generate ID)"))
             {
-                OCGenerator.TestInitOCGeneration(sceneName,1,1);
+                OCGenerator.TestInitOCGeneration(sceneName,0,0);
             }
 
             if (GUILayout.Button("TestBake"))
             {
-                OCGenerator.TestGenerateOCData(63);
+                OCGenerator.TestGenerateOCData(0);
             }
 
             if (GUILayout.Button("BakeAll"))
             {
-                OCGenerator.TestBakeAll();
+                OCGenerator.TestBakeAll(sceneName);
+            }
+
+            if(GUILayout.Button("MergeOCData"))
+            {
+                OCGenerator.TestMergeOCDataForStreamScene();
             }
 
             if (GUILayout.Button("TestPVS"))
             {
                 OCSceneConfig config = OCGenerator.GetMapConfig(sceneName);
                 PVSTest test = new PVSTest(Camera.main, config);
-                test.Do(-1);
+                test.Test(-1);
             }
 
-            if (GUILayout.Button("LoadOCData"))
+            if (GUILayout.Button("TestLoadOCData"))
+            {
+
+                OCSceneConfig config = OCGenerator.GetMapConfig(sceneName);
+                if (config.IsStreamScene)
+                {
+                    var ocDataFilePath = MultiScene.GetOCDataFilePath(config.SceneAssetPath, config.SceneNamePattern);
+                    if (!File.Exists(ocDataFilePath))
+                    {
+                        EditorUtility.DisplayDialog("文件不存在", string.Format("OC 数据文件 {0} 不存在!", ocDataFilePath), "确定");
+                        return;
+                    }
+                    int TileDimension = config.TileDimension;
+                    byte[] data = null;
+                    using (var fileStream = File.Open(ocDataFilePath, FileMode.Open))
+                    {
+                        data = new byte[fileStream.Length];
+                        if (fileStream.Read(data, 0, data.Length) != data.Length)
+                        {
+                            EditorUtility.DisplayDialog("文件读取失败", string.Format("读取 OC 数据文件 {0} 失败!", ocDataFilePath), "确定");
+                            return;
+                        }
+                    }
+
+                    streamScene = new MultiScene( config.SceneAssetPath, config.SceneNamePattern, TileDimension, config.TileSize, data);
+                    for(int i=0; i< 8; i++)
+                        for(int j=0; j< 8; j++)
+                    streamScene.Load(i, j);
+                  
+                }
+                else
+                {
+                    singleScene = new OC.SingleScene(config.SceneAssetPath, config.SceneNamePattern, null);
+                    singleScene.TestLoad();
+                }
+            }
+
+            if (GUILayout.Button("LoadAllOCData"))
             {
                 OCSceneConfig config = OCGenerator.GetMapConfig(sceneName);
                 if(config.IsStreamScene)
                 {
                     streamScene = new OC.MultiScene(config.SceneAssetPath, config.SceneNamePattern, config.TileDimension, config.TileSize);
-                    streamScene.TestLoad();
+                    streamScene.TestLoadAll();
                 }
                 else
                 {

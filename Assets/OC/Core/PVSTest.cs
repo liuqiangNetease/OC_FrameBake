@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.IO;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -119,8 +120,28 @@ namespace OC
            
             if (config.IsStreamScene)
             {
-                streamScene = new OC.MultiScene(config.SceneAssetPath, config.SceneNamePattern, config.TileDimension, config.TileSize);
-                streamScene.TestLoad();
+                var ocDataFilePath = MultiScene.GetOCDataFilePath(config.SceneAssetPath, config.SceneNamePattern);
+                if (!File.Exists(ocDataFilePath))
+                {
+                    EditorUtility.DisplayDialog("文件不存在", string.Format("OC 数据文件 {0} 不存在!", ocDataFilePath), "确定");
+                    return;
+                }
+                int TileDimension = config.TileDimension;
+                byte[] data = null;
+                using (var fileStream = File.Open(ocDataFilePath, FileMode.Open))
+                {
+                    data = new byte[fileStream.Length];
+                    if (fileStream.Read(data, 0, data.Length) != data.Length)
+                    {
+                        EditorUtility.DisplayDialog("文件读取失败", string.Format("读取 OC 数据文件 {0} 失败!", ocDataFilePath), "确定");
+                        return;
+                    }
+                }
+
+                streamScene = new MultiScene(config.SceneAssetPath, config.SceneNamePattern, TileDimension, config.TileSize, data);
+                for (int i = 0; i < 2; i++)
+                    for (int j = 0; j < 2; j++)
+                        streamScene.Load(i, j);
             }
             else
             {

@@ -42,6 +42,7 @@ namespace OC
         private byte[] _data;
 
         public List<Window> windowList = new List<Window>();
+      
 
         public Tile(World owner) :
             this(null, owner)

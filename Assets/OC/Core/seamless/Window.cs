@@ -112,6 +112,81 @@ namespace OC
             tileMap.Clear();
         }
 
+        public bool Update(Index newIndex)
+        {
+            var initSuccess = true;
+            if (_owner != null)
+            {
+               // _position = _owner.Com;
+                //Index newIndex = _owner.ComputerIndex(position);
+                if ( newIndex.Equals(_currentIndex))
+                {
+                    return true;
+                }
+                else
+                {
+                    _currentIndex = newIndex;
+                }
+
+                Dictionary<Index, Tile> oldTileMap = new Dictionary<Index, Tile>();
+                foreach (var tile in tileMap)
+                {
+                    oldTileMap.Add(tile.Key, tile.Value);
+                }
+
+
+                UpdateTileMap();
+
+                //unload tiles
+                foreach (var pair in oldTileMap)
+                {
+                    Tile tile = pair.Value;
+                    if (tile != null)
+                    {
+                        if (IsContains(tile.TileIndex) == false)
+                        {
+                            tile.RemoveWindow(this);
+                            _owner.UnloadTile(tile);
+                        }
+                    }
+                }
+
+                //new window
+                foreach (KeyValuePair<Index, Tile> pair in tileMap)
+                {
+                    Tile tile = pair.Value;
+                    if (tile != null)
+                    {
+                        _owner.LoadTile(tile);
+                    }
+                }
+
+                //init
+                foreach (KeyValuePair<Index, Tile> pair in tileMap)
+                {
+                    Tile tile = pair.Value;
+                    if (tile != null)
+                    {
+                        bool success = _owner.InitOnLoad(tile);
+
+                        if (!success)
+                        {
+                            if (!Config.IgnoreFailureOnTileInit)
+                            {
+                                Debug.LogErrorFormat("Init Tile {0} failed", tile.TileIndex);
+                                initSuccess = false;
+                                break;
+                            }
+
+                            Debug.LogWarningFormat("Init Tile {0} failed", tile.TileIndex);
+                        }
+                    }
+                }
+            }
+
+            return initSuccess;
+        }
+
         public bool Update(Vector2 position, bool checkMovment = true)
         {
             var initSuccess = true;
@@ -224,17 +299,18 @@ namespace OC
             }
         }
 
-        public void Bake()
+        public bool Bake(bool bFrame)
         {
             foreach (var pair in tileMap)
             {
                 Tile tile = pair.Value;
                 if (tile.TileIndex.Equals(_currentIndex))
                 {
-                    tile.Bake(Config.ComputePerframe);
-                    break;
+                    return tile.Bake(bFrame);                   
                 }
             }
+
+            return true;
         }
 
         public void CopyOCDataTo(string temporaryContainer)

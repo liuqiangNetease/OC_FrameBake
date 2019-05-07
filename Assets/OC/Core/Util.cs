@@ -3,7 +3,14 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using System.IO;
+
+#if UNITY_EDITOR
+using UnityEditor.SceneManagement;
+#endif
 
 namespace OC
 {
@@ -183,6 +190,61 @@ namespace OC
             }
             return ret;
         }*/
+
+        public static bool IsSceneOpened(string sceneName)
+        {
+            return SceneManager.GetSceneByName(sceneName).isLoaded;
+        }
+
+#if UNITY_EDITOR
+        public static void ClearScenes()
+        {
+            if (!IsSceneOpened(String.Empty))
+            {
+                var emptyScene = UnityEditor.SceneManagement.EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
+
+                var roots = emptyScene.GetRootGameObjects();
+                foreach (var root in roots)
+                {
+                    GameObject.DestroyImmediate(root);
+                }
+            }
+
+            while (SceneManager.sceneCount > 1)
+            {
+                for (int i = 0; i < SceneManager.sceneCount; ++i)
+                {
+                    var openedScene = SceneManager.GetSceneAt(i);
+                    if (openedScene.name.Equals(String.Empty))
+                    {
+                        continue;
+                    }
+
+                    Debug.LogFormat("Cloese Scene {0}", openedScene.name);
+                    EditorSceneManager.CloseScene(openedScene, true);
+                    break;
+                }
+            }
+
+            Debug.LogFormat("Remove unrelated scene left scene count {0}", SceneManager.sceneCount);
+        }
+
+
+        public static string LoadJson(string path)
+        {
+            string ret = null;
+
+
+            if (!File.Exists(path))
+            {
+                Debug.LogErrorFormat("oc scenes config file {0} does not exist!", path);
+                return ret;
+            }
+
+            ret = File.ReadAllText(path);
+            return ret;
+        }
+#endif
 
 
         public static Byte[] ConvertBitArray(BitArray bit_data)

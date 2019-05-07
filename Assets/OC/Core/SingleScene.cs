@@ -15,160 +15,10 @@ using UnityEditor.SceneManagement;
 
 namespace OC
 {
-    internal class RenderableObjectSet : IEnumerable, IEnumerable<RenderableObj>
-    {
-        private SingleScene _owner;
-
-        private HashSet<RenderableObj> _renderableObjSet = new HashSet<RenderableObj>();
-        private Dictionary<int, RenderableObj> _idObjDict = new Dictionary<int, RenderableObj>();
-        private Dictionary<MeshRenderer, RenderableObj> _meshObjDict = new Dictionary<MeshRenderer, RenderableObj>();
-
-        public RenderableObjectSet(SingleScene owner)
-        {
-            _owner = owner;
-        }
-
-        public int Count
-        {
-            get { return _idObjDict.Count; }
-        }
-
-        public void Add(int guid, MeshRenderer renderer)
-        {
-            RenderableObj obj = null;
-            if (_idObjDict.TryGetValue(guid, out obj))
-            {
-                obj.AddMeshRenderer(renderer);
-            }
-            else
-            {
-                obj = new RenderableObj(_owner);
-                obj.SetID(guid);
-                obj.AddMeshRenderer(renderer);
-                _idObjDict[guid] = obj;
-                _renderableObjSet.Add(obj);
-            }
-
-            _meshObjDict[renderer] = obj;
-        }
-
-        internal void Add(List<MeshRenderer> renderers)
-        {
-            var renderableObj = new RenderableObj(_owner);
-            for (int i = 0; i < renderers.Count; i++)
-            {
-                var renderer = renderers[i];
-                renderableObj.AddMeshRenderer(renderer);
-                _meshObjDict[renderer] = renderableObj;               
-            }
-            _renderableObjSet.Add(renderableObj);
-        }
-
-        internal void Add(MeshRenderer renderer)
-        {
-            var renderableObj = new RenderableObj(_owner);
-            renderableObj.AddMeshRenderer(renderer);
-            _meshObjDict[renderer] = renderableObj;
-            _renderableObjSet.Add(renderableObj);
-        }
-
-        public bool RecalcRenderableObjectGuid(out ushort maxId, Func<string, string, float, bool> progress = null)
-        {
-            _idObjDict.Clear();
-            maxId = 0;
-            var objCount = _renderableObjSet.Count;
-            var cancelled = false;
-
-            Debug.LogFormat("Generate Game Object Id for scene {0}", _owner.Name);
-            foreach (var obj in _renderableObjSet)
-            {
-                if (!Config.IsBatchMode && progress != null)
-                {
-                    cancelled = progress(String.Format("场景{0}生成ObjectId", _owner.Name), "设置Object Id", ((float) maxId) / objCount);
-                    if (cancelled)
-                        break;
-                }
-
-                obj.SetID(maxId);
-                _idObjDict[maxId] = obj;
-                maxId++;
-            }
-
-#if UNITY_EDITOR   
-            if (!Config.IsBatchMode && progress != null)
-            {
-                EditorUtility.ClearProgressBar();
-            }
-#endif
-
-            return !cancelled;
-        }
-
-        public void RemoveEmptyRenerableObject()
-        {
-            var removeList = new List<RenderableObj>();
-            foreach (var obj in _renderableObjSet)
-            {
-                if (obj.Count == 0)
-                {
-                    removeList.Add(obj);
-                }
-            }
-
-            foreach (var obj in removeList)
-            {
-                _renderableObjSet.Remove(obj);
-                _idObjDict.Remove(obj.GUID);
-            }
-        }
-
-        public void Clear()
-        {
-            _renderableObjSet.Clear();
-            _idObjDict.Clear();
-            _meshObjDict.Clear();
-        }
-
-        public RenderableObj GetByGuid(ushort guid)
-        {
-            RenderableObj obj = null;
-            _idObjDict.TryGetValue(guid, out obj);
-            return obj;
-        }
-
-        public RenderableObj GetByMeshRenderer(MeshRenderer renderer)
-        {
-            RenderableObj obj = null;
-            _meshObjDict.TryGetValue(renderer, out obj);
-            return obj;
-        }
-
-        public void Remove(MeshRenderer renderer)
-        {
-            RenderableObj obj = null;
-            if (_meshObjDict.TryGetValue(renderer, out obj))
-            {
-                _meshObjDict.Remove(renderer);
-                obj.RemoveMeshRenderer(renderer);
-            }
-        }
-
-
-        public IEnumerator<RenderableObj> GetEnumerator()
-        {
-            return _renderableObjSet.GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return _renderableObjSet.GetEnumerator();
-        }
-    }
-
     public class SingleScene : Tile
     {
         //private static LoggerAdapter _logger = new LoggerAdapter(typeof(SingleScene));
-        private static readonly  string OCDataFileSuffix = "_oc.txt";
+        private static readonly string OCDataFileSuffix = "_oc.txt";
 
         public BoundsOctree<OC.Cell> tree;
         public BoundsOctree<MeshRenderer> treeMesh;
@@ -209,9 +59,9 @@ namespace OC
             set { path = value; }
         }
 
-        public SingleScene(string path, string name, World owner = null):
+        public SingleScene(string path, string name, World owner = null) :
             this(path, name, Index.InValidIndex, 1000, null, owner)
-        { 
+        {
             IsPrepared = false;
             IsFinish = false;
 
@@ -220,7 +70,7 @@ namespace OC
             tree = null;
         }
 
-        public SingleScene(string path, string name, Index index, int tileDimension, byte[] data, World owner):
+        public SingleScene(string path, string name, Index index, int tileDimension, byte[] data, World owner) :
             base(index, tileDimension, data, owner)
         {
             IsPrepared = false;
@@ -231,7 +81,7 @@ namespace OC
             Path = path;
             Name = name;
 
-            renderableSet = new RenderableObjectSet(this);            
+            renderableSet = new RenderableObjectSet(this);
 
             treeMesh = null;
 
@@ -258,8 +108,8 @@ namespace OC
         public List<VisVolume> volumelList = new List<VisVolume>();
 
 
-        internal RenderableObjectSet renderableSet;             
-        
+        internal RenderableObjectSet renderableSet;
+
 
         #region disableobject
         public List<RenderableObj> disabledList = new List<RenderableObj>();
@@ -303,7 +153,7 @@ namespace OC
         {
             EditorUtility.ClearProgressBar();
             bool ret = true;
-            if(IsPrepared == false)
+            if (IsPrepared == false)
             {
                 IsPrepared = true;
                 StoreCamera();
@@ -314,21 +164,21 @@ namespace OC
                 Save();
                 if (!ComputeVolumeCells())
                 {
-                    return false;    
+                    return false;
                 }
                 Cell.PrepareToGetRenderableModels();
-                
+
             }
             return ret;
         }
 
         internal void Finish()
         {
-            if(IsFinish)
+            if (IsFinish)
             {
                 Cell.FinishToGetRenderableModels();
-                
-                
+
+
                 EditorApplication.update -= ComputePVS;
                 RestoreCamera();
 
@@ -340,6 +190,68 @@ namespace OC
             }
         }
 
+        private bool StreamComputePVS()
+        {
+            if (curBakeVolume >= volumelList.Count || IsFinish)
+            {
+                IsFinish = true;
+                Finish();
+                return true;
+            }
+
+            //OCProfiler.Start();
+            for (int i = curBakeVolume; i < volumelList.Count; ++i)
+            {
+                var volume = volumelList[i];
+                if (!volume.GetRenderableModels(String.Format("Volume {0}/{1} 正在生成PVS数据", i + 1, volumelList.Count),
+                    Progress))
+                {
+                    //Finish();
+                    break;
+                }
+                curBakeVolume++;
+            }
+
+            if (curBakeVolume >= volumelList.Count || IsFinish)
+            {
+                IsFinish = true;
+                Finish();
+                return true;
+            }
+
+            return IsFinish;
+        }
+
+        private void ComputePVS()
+        {
+            if (curBakeVolume >= volumelList.Count || IsFinish)
+            {
+                IsFinish = true;
+                Finish();
+                return;
+            }
+
+            //OCProfiler.Start();
+            for (int i = curBakeVolume; i < volumelList.Count; ++i)
+            {
+                var volume = volumelList[i];
+                if (!volume.GetRenderableModels(String.Format("Volume {0}/{1} 正在生成PVS数据", i + 1, volumelList.Count),
+                    Progress))
+                {
+                    Finish();
+                    break;
+                }
+                curBakeVolume++;
+            }
+
+            if (curBakeVolume >= volumelList.Count || IsFinish)
+            {
+                IsFinish = true;
+                Finish();
+                return;
+            }
+        }
+
         public override bool Bake(bool bFrame)
         {
             if(Prepare() == false)
@@ -347,17 +259,27 @@ namespace OC
                 Debug.Log("bake Prepare fail!");
                 return false;
             }
-            if(bFrame)
+            if(bFrame && Owner == null)
             {
                 EditorApplication.update += ComputePVS;
             }
             else
             {
                 ComputePVS();
-                IsFinish = true;
-                Finish();
+                /*if (Owner == null)
+                {
+                    ComputePVS();
+                    IsFinish = true;
+                    Finish();
+                }
+                else
+                {
+                    StreamComputePVS();
+                }*/
+
+                
             }
-            return true;
+            return IsFinish;
         }
 
         
@@ -914,32 +836,6 @@ namespace OC
                 volumelList[i].GenerateCells();
             }
         }
-
-        private void ComputePVS()
-        {
-            if(curBakeVolume >= volumelList.Count)
-            {
-                IsFinish = true;
-                Finish();
-                return;
-            }
-
-            //OCProfiler.Start();
-            for(int i = curBakeVolume; i < volumelList.Count; ++i)
-            {
-                var volume = volumelList[i];
-                if (!volume.GetRenderableModels(String.Format("Volume {0}/{1} 正在生成PVS数据", i + 1, volumelList.Count),
-                    Progress))
-                {
-                    Finish();
-                    break;
-                }
-                curBakeVolume ++;
-            }
-            //BakeStat.ComputePvsTime = OCProfiler.Stop();
-        }
-
-        
 
         private void WriteNeighborMaxGameObjId(OCDataWriter writer)
         {

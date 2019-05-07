@@ -16,7 +16,7 @@ namespace OC.Editor
 {
     public partial class OCGenerator : MonoBehaviour
     {
-        public int ScreenWidth = 800;
+        public int ScreenWidth = 600;
         public int ScreenHeight = 600;
         public float CellSize = 2;
         public bool SimpleGenerateCell = false;
@@ -41,7 +41,7 @@ namespace OC.Editor
         public bool ComputePerframe = false;
         public int PerframeExecCount = 3000;
 
-        public int TestCellCount = 100;
+        public int TestCellCount = -1;
 
         public bool CustomVolume;
         public Vector3 CustomVolumeCenter;
@@ -51,26 +51,38 @@ namespace OC.Editor
         private SingleScene _scene;
         private MultiScene _multiScene;
 
-        public string StreamOCTemporaryContainer = @"D:\voyager_related";
+        public string StreamOCTemporaryContainer = "D:/buildtemp";
         public string StreamSceneNamePattern;   
 
         public void TestPVS()
         {
-            //var testPVS = new PVSTest(Camera.main, new OCSceneConfig());
-            //testPVS.Test(TestCellCount);
+            var config = GetMapConfig(gameObject.scene.name);
+            if(config.MapName == string.Empty)
+            {
+                config.IsStreamScene = false;
+                config.SceneAssetPath = GetScenePath();
+                config.SceneNamePattern = gameObject.scene.name;
+            }
+            var testPVS = new PVSTest(Camera.main, config);
+            testPVS.Test(TestCellCount);
         }
 
         public void GenerateFixedSceneOCData()
-        {
-            InitConfig();
+        {            
+            var config = GetMapConfig(gameObject.scene.name);
 
-            _scene = new SingleScene(GetScenePath(), gameObject.scene.name);
-
-            _scene.Bake(Config.ComputePerframe);
-
-            //var contextManager = new OCBakeContextManager(_scene, () => { _scene.CopyOCDataTo(StreamOCTemporaryContainer); });
-            //contextManager.Bake();
-            //_scene.BakeOC();
+            if (config.MapName == string.Empty)
+            {
+                InitConfig();
+                _scene = new SingleScene(GetScenePath(), gameObject.scene.name);
+                _scene.Bake(Config.ComputePerframe);
+            }
+            else
+            {
+                ConfigGenerator(config);
+                _scene = new SingleScene(config.SceneAssetPath, config.SceneNamePattern, null);
+                _scene.Bake(config.ComputePerframe);
+            }
         }
 
         public void GenerateStreamSceneOCData()
@@ -83,17 +95,10 @@ namespace OC.Editor
             int x = 0, y = 0;
             if (GetStreamSceneIndex(TileDimension, out x, out y))
             {
-                _multiScene.BakeOne(x, y);
-                // var contetIter = _multiScene.GetBakeContexts(x, y, StreamOCTemporaryContainer, (tileX, tileY, tile) =>
-                // {
-                //     if (tileX == x && tileY == y)
-                //     {
-                //         (tile as SingleScene).Save();
-                //     }
-                // });
-
-                // var contextManger = new OCBakeContextManager(contetIter);
-                // contextManger.Bake();
+                //_multiScene.BakeOne(x, y); 
+                var tiles = new List<Index>();
+                tiles.Add(new Index(x,y));
+                _multiScene.BakeTiles(tiles, Config.ComputePerframe);
             }
             else
             {
@@ -128,7 +133,7 @@ namespace OC.Editor
             int x = 0, y = 0;
             if (GetStreamSceneIndex(TileDimension, out x, out y))
             {
-                _multiScene.Load(x, y, null, true);
+                _multiScene.Load(x, y);
             }
             else
             {
@@ -146,7 +151,7 @@ namespace OC.Editor
             }
 
             const int TileDimension = 8;
-            //OCGenerator.MergeStreamSceneOCData(GetScenePath(), StreamSceneNamePattern, StreamOCTemporaryContainer, TileDimension);
+            OCGenerator.MergeStreamSceneOCData(GetScenePath(), StreamSceneNamePattern, StreamOCTemporaryContainer, TileDimension);
         }
 
         private bool GetStreamSceneIndex(int tileDimension, out int x, out int y)
@@ -182,18 +187,7 @@ namespace OC.Editor
             var path = scenePath.Substring(0, scenePath.Length - sceneFullName.Length - 1);
 
             return path;
-        }        
-
-        public static ComputeShader GetOCVisComputeShader()
-        {
-            var computeShader = AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/Assets/ArtPlugins/OC/OCVisCompute.compute");
-            if (computeShader == null)
-            {
-                computeShader = AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/ArtPluginOut/OC/OCVisCompute.compute");
-            }
-
-            return computeShader;
-        }
+        }    
 
         private void InitConfig()
         {
