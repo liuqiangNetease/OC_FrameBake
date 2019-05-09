@@ -1,4 +1,6 @@
-﻿using ArtPlugins;
+﻿#if UNITY_EDITOR
+
+using ArtPlugins;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -316,4 +318,6 @@ namespace OC
     }
 
 }
+
+#endif
 

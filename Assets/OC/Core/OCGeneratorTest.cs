@@ -38,7 +38,7 @@ namespace OC.Editor
             //var tileY = 0;// int.Parse(System.Environment.GetCommandLineArgs()[3]);
             //if (!OpenAllScenes(sceneName, tileX, tileY))
                 //return;
-            ClearLightmappingData();
+            //ClearLightmappingData();
             //GenerateAllSceneRenderableObjectID();
         }
         //4 ocgenerate.bat 执行并行烘焙(得到pvs数据)
@@ -51,7 +51,7 @@ namespace OC.Editor
 
             Debug.LogFormat("Generate OC Data Project Asset Path {0} index {1}", projectAssetPath, index);
             var config = LoadSceneConfig(projectAssetPath, index);
-            if (config.MapName == string.Empty)
+            if (string.IsNullOrEmpty(config.MapName))
             {
                 Debug.LogErrorFormat("Can not get oc map config for stream scene in oc data generation, path {0} index {1}", projectAssetPath, 0);
                 ExitOnBatchMode();
@@ -60,7 +60,7 @@ namespace OC.Editor
             if (config.IsStreamScene)
             {
                 //config = LoadSceneConfig(projectAssetPath, index);
-                if (config.MapName != string.Empty)
+                if (string.IsNullOrEmpty(config.MapName) == false)
                 {
                     BakeStreamSceneByConfig(config);
                 }
@@ -88,7 +88,7 @@ namespace OC.Editor
             //PrintArgs(1);
 
             var config = LoadSceneConfig(projectPath, 0);
-            if (config.MapName == string.Empty)
+            if (string.IsNullOrEmpty(config.MapName))
             {
                 Debug.LogErrorFormat("Can not get oc map config for stream scene in oc data mergence, path {0} index {1}", projectPath, 0);
                 return;
@@ -101,12 +101,14 @@ namespace OC.Editor
 
         //-----------------------------------------------
         
-        public static OCSceneConfig CreateSceneConfig(string sceneName, string scenePath, bool frameBake = true, bool bStream = false, string sceneNameTemplate = "", float cellSize = 2.0f, bool mergeCell = false, float weight = 0.9f, int tileDim = 8, int tileSize = 1000)
+        public static OCSceneConfig CreateSceneConfig(string sceneName, string scenePath, bool frameBake = true, bool bStream = false, string sceneNameTemplate = "", 
+                                                               float cellSize = 2.0f, bool mergeCell = false, float weight = 0.9f, int tileDim = 8, int tileSize = 1000,
+                                                               bool customVolume = false, Vector3 center = default(Vector3), Vector3 size= default(Vector3))
         {
             OCSceneConfig config = new OCSceneConfig();
             config.MapName = sceneName;
             config.CellSize = cellSize;
-            config.MaxPlayerHeight = 2.5f;
+            config.MaxPlayerHeight = 2.0f;
             config.MinPlayerHeight = 0;
             config.ScreenHeight = 600;
             config.ScreenWidth = 600;
@@ -124,7 +126,7 @@ namespace OC.Editor
             config.SceneNamePattern = sceneNameTemplate;
             config.TemporaryContainer = "D:/OCTemp";
             config.ComputePerframe = frameBake;
-            config.PerframeExecCount = 100;
+            config.PerframeExecCount = 1000;
             if (bStream)
             {
                 config.indices = new List<Index>();
@@ -137,14 +139,16 @@ namespace OC.Editor
                 config.SceneNamePattern = config.MapName;
                 config.TileDimension = 0;
             }
+
+            config.CustomVolume = customVolume;
+            config.VolumeCenter = center;
+            config.VolumeSize = size;
+
             return config;
         }
         public static void TestCreateScensJson()
         {
             var sceneList = new List<OCSceneConfig>();
-
-            sceneList.Add(CreateSceneConfig("sTest", "Assets/Scene"));
-            sceneList.Add(CreateSceneConfig("singleTest", "Assets/Scene"));
 
             sceneList.Add(CreateSceneConfig("S001", "Assets/Maps/maps/S001/Scenes"));
             sceneList.Add(CreateSceneConfig("S002", "Assets/Maps/maps/S002/Scenes"));
@@ -155,8 +159,9 @@ namespace OC.Editor
             sceneList.Add(CreateSceneConfig("M004", "Assets/Maps/maps/M004/Scenes"));
             sceneList.Add(CreateSceneConfig("M006", "Assets/Maps/maps/M006/Scenes"));
 
-            sceneList.Add(CreateSceneConfig("002", "Assets/Maps/maps/0001/Scenes", true, true, "002 {0}x{1}", 2, false, 0.9f, 8, 10));
-            /*config.indices.Add(new Index(2, 1));
+            var config = CreateSceneConfig("002", "Assets/Maps/maps/0001/Scenes", true, true, "002 {0}x{1}", 56, false);
+            /*config.indices.Clear();
+            config.indices.Add(new Index(2, 1));
             config.indices.Add(new Index(2, 2));
             config.indices.Add(new Index(2, 5));
             config.indices.Add(new Index(3, 1));
@@ -168,6 +173,11 @@ namespace OC.Editor
             config.indices.Add(new Index(5, 4));
             config.indices.Add(new Index(5, 5));
             config.indices.Add(new Index(5, 7));*/
+            sceneList.Add(config);
+
+            sceneList.Add(CreateSceneConfig("002", "Assets/LQ/Scenes/testStream", true, true, "002 {0}x{1}", 2, false, 0.9f, 8, 10));
+            sceneList.Add(CreateSceneConfig("testSimple", "Assets/LQ/Scenes"));
+           
 
             OCScenesConfig scenesConfig = new OCScenesConfig();
             scenesConfig.scenesConfig = sceneList;
@@ -178,17 +188,59 @@ namespace OC.Editor
 
         }
 
-        public static void GenerateTestStreamScenes(string path)
+        public static void OpenScenes(string name)
         {
+            OCSceneConfig config = OCGenerator.GetSceneConfig(name);
+            string path = config.GetSceneAssetPath();
+            path += "/";
+
+
+            if (config.IsStreamScene)
+            {
+                int tileDim = config.TileDimension;
+                int tileSize = config.TileSize;
+
+                var mainScene = EditorSceneManager.OpenScene(path + "AdditiveScene.unity");
+
+                for (int i = 0; i < tileDim; i++)
+                    for (int j = 0; j < tileDim; j++)
+                    {
+                        string sceneName = string.Format("{0} {1}x{2}", name, i, j);
+                        string scenePath = path + sceneName + ".unity";
+                        var scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
+                    }
+            }
+            else
+            {
+                EditorSceneManager.OpenScene(path + name +".unity");
+            }
+        }
+
+        public static void GenerateTestStreamScenes(string name)
+        {
+            OCSceneConfig config = OCGenerator.GetSceneConfig(name);
+            string path = config.GetSceneAssetPath();
+
+            path += "/";
+
+            int tileDim = config.TileDimension;
+            int tileSize = config.TileSize;
+
             var template = Resources.Load("root") as GameObject;
 
+            var mainScene = EditorSceneManager.OpenScene(path + "AdditiveScene.unity");
+            foreach (var root in mainScene.GetRootGameObjects())
+            {
+                GameObject.DestroyImmediate(root);
+            }
+            var mainCamera = Resources.Load("MainCamera") as GameObject;
+            var cam = GameObject.Instantiate(mainCamera);           
 
-            EditorSceneManager.OpenScene(path + "Additive.unity");
 
-            for (int i = 0; i < 8; i++)
-                for (int j = 0; j < 8; j++)
+            for (int i = 0; i < tileDim; i++)
+                for (int j = 0; j < tileDim; j++)
                 {
-                    string sceneName = string.Format("002 {0}x{1}", i, j);
+                    string sceneName = string.Format("{0} {1}x{2}", name, i, j);
                     string scenePath = path + sceneName + ".unity";
                     var scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
 
@@ -200,10 +252,10 @@ namespace OC.Editor
                     }
 
                     var templateGO = GameObject.Instantiate(template);
-                    templateGO.transform.position = new Vector3(i * 10, 0, j * 10);
+                    templateGO.transform.localScale = new Vector3(tileSize / 10, tileSize / 10, tileSize / 10);
+                    templateGO.transform.position = new Vector3(i * tileSize, 0, j * tileSize);
 
                     var coms = templateGO.GetComponentsInChildren<MeshRenderer>();
-
 
                     int count = 0;
                     foreach (var com in coms)
@@ -225,23 +277,23 @@ namespace OC.Editor
         {
             var config = GetSceneConfig(sceneName);
             ConfigGenerator(config);
-            var tiles = config.indices;
-            if (tiles != null)
+            
+            if (config.IsStreamScene)
             {
-                var multiScene = new MultiScene(config.SceneAssetPath, config.SceneNamePattern, config.TileDimension, config.TileSize);
-                multiScene.BakeTiles(tiles, config.ComputePerframe);
+                var multiScene = new MultiScene(config.GetSceneAssetPath(), config.SceneNamePattern, config.TileDimension, config.TileSize);                
+                multiScene.BakeTiles(config.indices, config.ComputePerframe, config.TemporaryContainer);
             }
             else
             {
-                Debug.LogErrorFormat("Can not get bake tiles for map {0}", config.MapName);
-                ExitOnBatchMode();
+                var scene = new SingleScene(config.GetSceneAssetPath(), config.SceneNamePattern, Index.InValidIndex);
+                scene.Bake(true, "D:/OCTemp");
             }
         }
 
         public static void TestApplyOCData(string sceneName)
         {
             var config = GetSceneConfig(sceneName);
-             ApplyOCData(sceneName, config.SceneAssetPath);
+             ApplyOCData(sceneName, config.GetSceneAssetPath());
         }
     }
 }

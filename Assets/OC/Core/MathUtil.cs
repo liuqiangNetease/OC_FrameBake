@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+#if UNITY_EDITOR
 namespace OC
 {
     public enum Side
@@ -50,4 +51,5 @@ namespace OC
         }
     }
 }
+#endif
 

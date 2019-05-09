@@ -1,32 +1,36 @@
-﻿//using Core.Utils;
+﻿
+#if UNITY_EDITOR
+//using Core.Utils;
+//using OC.Profiler;
 using System.Collections;
 using System.Collections.Generic;
-#if UNITY_EDITOR
 using UnityEditor;
-#endif
 using UnityEngine;
 
 
 namespace OC
 {
+
     public class MinRenderer
     {
-        #region [ Static ]
+#region [ Static ]
         private static readonly MinRenderer _instance = new MinRenderer();
 
         public static MinRenderer Instance
         {
             get { return _instance; }
         }
-        #endregion
+#endregion
 
         public MinRenderer()
         {
+#if UNITY_EDITOR
             _computeShader = AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/Assets/ArtPlugins/OC/OCVisCompute.compute");
             if (_computeShader == null)
             {
                 _computeShader = AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/ArtPluginOut/OC/OCVisCompute.compute");
             }
+#endif
         }
 
 
@@ -101,7 +105,7 @@ namespace OC
         private RenderTexture _oldTarget;
         private RenderTexture _oldActive;
         private RenderTexture _newTarget;
-        //private RenderTexture _dummyTarget;
+        private RenderTexture _dummyTarget;
         private Texture2D _texture;
 
         private int _textureWidth;
@@ -149,8 +153,8 @@ namespace OC
             {
                 var mat = oldMats[i];
 
-                //if (mat == null)
-                    //continue;
+                if (mat == null)
+                   continue;
 
                 float mode = 0;
                 if (mat.HasProperty("_Mode"))
@@ -325,8 +329,8 @@ namespace OC
             _textureWidth = Config.ScreenWidth;
             _textureHeight = Config.ScreenHeight;
 
-            //if (_newTarget != null)           
-                //RenderTexture.ReleaseTemporary(_newTarget);
+            if (_newTarget != null)           
+                RenderTexture.ReleaseTemporary(_newTarget);
            
 
             if (Config.UseComputeShader)
@@ -334,9 +338,9 @@ namespace OC
             else
                 _newTarget = RenderTexture.GetTemporary(_textureWidth, _textureHeight, 16, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
 
-            //if (_dummyTarget != null)           
-                //RenderTexture.ReleaseTemporary(_dummyTarget);           
-            //_dummyTarget = RenderTexture.GetTemporary(_textureWidth, _textureHeight, 16, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
+            if (_dummyTarget != null)           
+                RenderTexture.ReleaseTemporary(_dummyTarget);           
+            _dummyTarget = RenderTexture.GetTemporary(_textureWidth, _textureHeight, 16, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.sRGB);
 
 
             _newTarget.autoGenerateMips = false;
@@ -423,31 +427,29 @@ namespace OC
             _visibleRenders.Clear();
             int notFoundKeysCount = 0;
             if (Config.UseComputeShader)
-            {
-                //OCProfiler.Start();
+            {              
+                RenderTexture.active = _dummyTarget;
+                
                 var computeKernal = _computeShader.FindKernel("OCVisCompute");
-                _computeShader.Dispatch(computeKernal, _textureWidth, _textureHeight, 1);
-                //var visComputeTime = OCProfiler.Stop();
-                //Debug.LogFormat("Vis Compute Time is {0}", visComputeTime);
-
-                // OCProfiler.Start();
+                _computeShader.Dispatch(computeKernal, _textureWidth, _textureHeight, 1);               
+                
                 _computeIndexLengthBuffer.GetData(_computeLengthData);
                 var length = _computeLengthData[0];
-                if (length > _computeIndexData.Length)
-                {
-                    _computeIndexData = new int[length];
-                    //Debug.LogFormat("Reallocate Compute Shader Index Data length {0}", length);
-                }
+                //if (length > _computeIndexData.Length)
+                //{
+                //_computeIndexData = new int[length];                  
+                //}
+                _computeIndexData = new int[length];
 
                 if (length > 0)
                 {
+                    //OCProfiler.Start();
                     _computeIndexBuffer.GetData(_computeIndexData);
                     //var visComputeGetData = OCProfiler.Stop();
                     //Debug.LogFormat("Vis Compute Get Data Time is {0}", visComputeGetData);
                     //OCProfiler.Start();
                     for (int key = 0; key < length; ++key)
-                    {
-                        // Debug.LogFormat("key {0} count {1}", key, _computeData[key]);
+                    {                 
                         MeshRenderer mr = null;
                         if (!_renderColors.TryGetValue(_computeIndexData[key], out mr))
                         {
@@ -461,17 +463,19 @@ namespace OC
                         }
                     }
 
-                    //var visResultTime = OCProfiler.Stop();
-                    //Debug.LogFormat("Vis Result Time is {0}", visResultTime);
+                   //var visResultTime = OCProfiler.Stop();
+                   //Debug.LogFormat("Vis Result Time is {0}", visResultTime);
                 }
             }
             else
             {
-                //Graphics.CopyTexture(_newTarget, _texture);
-
+#if true
+                Graphics.CopyTexture(_newTarget, _texture);
+#else
                 RenderTexture.active = _newTarget;
                 _texture.ReadPixels(new Rect(0f, 0f, _textureWidth, _textureHeight), 0, 0);
                 _texture.Apply();
+#endif
 
                 // 获取实际渲染的物体
                 // Color32[] pixels = _texture.GetPixels32(0);
@@ -606,4 +610,5 @@ namespace OC
     }
 
 }
+#endif
 

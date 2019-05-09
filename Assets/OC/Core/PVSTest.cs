@@ -120,7 +120,7 @@ namespace OC
            
             if (config.IsStreamScene)
             {
-                var ocDataFilePath = MultiScene.GetOCDataFilePath(config.SceneAssetPath, config.SceneNamePattern);
+                var ocDataFilePath = MultiScene.GetOCDataFilePath(config.GetSceneAssetPath(), config.SceneNamePattern);
                 if (!File.Exists(ocDataFilePath))
                 {
                     EditorUtility.DisplayDialog("文件不存在", string.Format("OC 数据文件 {0} 不存在!", ocDataFilePath), "确定");
@@ -138,14 +138,14 @@ namespace OC
                     }
                 }
 
-                streamScene = new MultiScene(config.SceneAssetPath, config.SceneNamePattern, TileDimension, config.TileSize, data);
+                streamScene = new MultiScene(config.GetSceneAssetPath(), config.SceneNamePattern, TileDimension, config.TileSize, data);
                 for (int i = 0; i < config.TileDimension; i++)
                     for (int j = 0; j < config.TileDimension; j++)
                         streamScene.Load(i, j);
             }
             else
             {
-                singleScene = new OC.SingleScene(config.SceneAssetPath, config.SceneNamePattern, Index.InValidIndex);
+                singleScene = new OC.SingleScene(config.GetSceneAssetPath(), config.SceneNamePattern, Index.InValidIndex);
                 singleScene.TestLoad();
             }
             

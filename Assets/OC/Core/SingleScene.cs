@@ -4,20 +4,27 @@ using System.Collections.Generic;
 using System.IO;
 //using Core.Utils;
 using OC.Profiler;
-using OC.Raster;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using ArtPlugins;
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.SceneManagement;
+using OC.Raster;
 #endif
 
+namespace ArtPlugins
+{
+    public class MultiTagBase: MonoBehaviour
+    {
+        public int renderId;
+        public static int InvalidRenderId = -1;
+    }
+}
 namespace OC
 {
     public class SingleScene : Tile
-    {
-        //private static LoggerAdapter _logger = new LoggerAdapter(typeof(SingleScene));
+    {     
         private static readonly string OCDataFileSuffix = "_oc.txt";
 
         public BoundsOctree<OC.Cell> tree;
@@ -27,11 +34,13 @@ namespace OC
 
         private int[,] _neighborMaxObjIdTable;
 
+#if UNITY_EDITOR
         private Quaternion OldCameraRot;
-
         private Vector3 OldCameraPos;
-
         public string tempPath;
+        private int curMultiTagID = 0;
+        GameObject camera;
+#endif
 
         public int GetNeighborSceneMaxObjectId(Index index)
         {
@@ -43,7 +52,7 @@ namespace OC
             get { return _maxGameObjectIDCount; }
         }
 
-        private int curMultiTagID = 0;
+        
 
         private string name;
         public string Name
@@ -62,19 +71,13 @@ namespace OC
         public SingleScene(string path, string name, Index index, byte[] data = null, World owner = null) :
             base(index, data, owner)
         {
-            tempPath = "";
-
+#if UNITY_EDITOR   
             IsPrepared = false;
             IsFinish = false;
-
             curBakeVolume = 0;
+#endif
 
             tree = null;
-
-            IsPrepared = false;
-            IsFinish = false;
-
-            curBakeVolume = 0;
 
             Path = path;
             Name = name;
@@ -109,7 +112,8 @@ namespace OC
         internal RenderableObjectSet renderableSet;
 
 
-        #region disableobject
+
+#region disableobject
         public List<RenderableObj> disabledList = new List<RenderableObj>();
 
         public void AddDisabledRenderableObj(RenderableObj obj)
@@ -127,7 +131,7 @@ namespace OC
 
             disabledList.Clear();
         }
-        #endregion
+#endregion
 
 
         public void DoCulling(Vector3 position)
@@ -154,12 +158,17 @@ namespace OC
             if (IsPrepared == false)
             {
                 IsPrepared = true;
-                StoreCamera();
-                if (!GeneraterRenderableObjectID())
+                if (Owner == null)
                 {
-                    return false;
+                    Open(OpenSceneMode.Single);
+                    if (!GeneraterRenderableObjectID())
+                    {
+                        return false;
+                    }
                 }
-                Save();
+
+                StoreCamera();
+
                 if (!ComputeVolumeCells())
                 {
                     return false;
@@ -183,7 +192,7 @@ namespace OC
 
                 EditorUtility.ClearProgressBar();
 
-                if(tempPath != "")
+                if(string.IsNullOrEmpty(tempPath) == false)
                 {
                     CopyOCDataTo(tempPath);
                     OC.Editor.OCGenerator.GenerateSceneOCDiffPatch(Name, tempPath);
@@ -253,8 +262,10 @@ namespace OC
             }
         }
 
-        public override bool Bake(bool bFrame)
+        public override bool Bake(bool bFrame, string ocTempPath)
         {
+            tempPath = ocTempPath;
+
             if(Prepare() == false)
             {
                 Debug.Log("bake Prepare fail!");
@@ -288,9 +299,9 @@ namespace OC
 
         private void StoreCamera()
         {
-            GameObject camera = null;
+            camera = null;
             if (Camera.main == null)
-            {
+            {                
                 camera = new GameObject("OCCamera");
                 camera.AddComponent<Camera>();
                 camera.tag = "MainCamera";
@@ -307,6 +318,13 @@ namespace OC
                 Camera.main.transform.position = OldCameraPos;
                 Camera.main.transform.rotation = OldCameraRot;
             }
+            else
+            {
+                Debug.LogError("not find Main Camera!");
+            }
+
+            if (camera != null)
+                GameObject.DestroyImmediate(camera);
         }
 
         private bool Progress(string strTitle, string strMessage, float fT)
@@ -741,11 +759,11 @@ namespace OC
             return ret;
         }
 
-        public bool GeneraterRenderableObjectID()
+        public override bool GeneraterRenderableObjectID()
         {
             //OCProfiler.Start();
 
-            //meshList.Clear();
+            
             renderableSet.Clear();
 
             ProcessAndMergeMeshRenders();
@@ -758,6 +776,8 @@ namespace OC
 
                 _maxGameObjectIDCount -= _maxGameObjectIDCount % 8;
                 _maxGameObjectIDCount += 8;
+
+                Save();
 
                 Debug.LogFormat("Scene {0} Max Id {1} ", Name, maxId);
             }
@@ -781,16 +801,13 @@ namespace OC
                 Debug.LogFormat("Open Scene {0}", Name);
                 EditorSceneManager.OpenScene(String.Format("{0}/{1}.unity", Path, Name), mode);
             }
+            
+            UnityEngine.Resources.UnloadUnusedAssets();
         }
 
         public override void Open()
         {
             Open(OpenSceneMode.Additive);
-        }
-
-        public override bool InitOnOpen()
-        {
-            return GeneraterRenderableObjectID();
         }
 
         public override void Close()

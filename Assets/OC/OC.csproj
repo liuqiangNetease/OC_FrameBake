@@ -52,19 +52,18 @@
   <ItemGroup>
     <Compile Include="Core\Cell.cs" />
     <Compile Include="Core\ColorN.cs" />
-    <Compile Include="Core\ColorSet.cs" />
     <Compile Include="Core\Config.cs" />
     <Compile Include="Core\GameObjectID.cs" />
     <Compile Include="Core\MathUtil.cs" />
     <Compile Include="Core\MinRenderer.cs" />
     <Compile Include="Core\MultiScene.cs" />
-    <Compile Include="Core\OCBakeContextManager.cs" />
     <Compile Include="Core\OCCamera.cs" />
     <Compile Include="Core\OCDataHeader.cs" />
     <Compile Include="Core\OCDataReader.cs" />
     <Compile Include="Core\OCDataWriter.cs" />
     <Compile Include="Core\OCVolumeScript.cs" />
     <Compile Include="Core\RenderableObj.cs" />
+    <Compile Include="Core\RenderableObjectSet.cs" />
     <Compile Include="Core\SingleScene.cs" />
     <Compile Include="Core\SoftRenderer.cs" />
     <Compile Include="Core\SoftRendererUtil.cs" />
@@ -75,10 +74,12 @@
     <Compile Include="Core\seamless\Tile.cs" />
     <Compile Include="Core\seamless\Window.cs" />
     <Compile Include="Core\seamless\World.cs" />
+    <Compile Include="Editor\OCBakeWindow.cs" />
     <Compile Include="Editor\OCGenerator.cs" />
     <Compile Include="Editor\OCGeneratorBatch.cs" />
     <Compile Include="Editor\OCGeneratorEditor.cs" />
     <Compile Include="Editor\OCGeneratorTest.cs" />
+    <Compile Include="Editor\OCScenesConfig.cs" />
     <Compile Include="Editor\PVSTest.cs" />
     <Compile Include="Editor\VolumeCellRasterExample.cs" />
     <Compile Include="OCTest.cs" />

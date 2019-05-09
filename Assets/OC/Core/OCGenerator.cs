@@ -57,7 +57,7 @@ namespace OC.Editor
         public void TestPVS()
         {
             var config = GetSceneConfig(gameObject.scene.name);
-            if(config.MapName == string.Empty)
+            if (string.IsNullOrEmpty(config.MapName))
             {
                 config.IsStreamScene = false;
                 config.SceneAssetPath = GetScenePath();
@@ -71,17 +71,17 @@ namespace OC.Editor
         {            
             var config = GetSceneConfig(gameObject.scene.name);
 
-            if (config.MapName == string.Empty)
+            if (string.IsNullOrEmpty(config.MapName))
             {
                 InitConfig();
                 _scene = new SingleScene(GetScenePath(), gameObject.scene.name, Index.InValidIndex);
-                _scene.Bake(Config.ComputePerframe);
+                _scene.Bake(Config.ComputePerframe, config.TemporaryContainer);
             }
             else
             {
                 ConfigGenerator(config);
-                _scene = new SingleScene(config.SceneAssetPath, config.SceneNamePattern, Index.InValidIndex);
-                _scene.Bake(config.ComputePerframe);
+                _scene = new SingleScene(config.GetSceneAssetPath(), config.SceneNamePattern, Index.InValidIndex);
+                _scene.Bake(config.ComputePerframe, config.TemporaryContainer);
             }
         }
 
@@ -98,7 +98,7 @@ namespace OC.Editor
                 //_multiScene.BakeOne(x, y); 
                 var tiles = new List<Index>();
                 tiles.Add(new Index(x,y));
-                _multiScene.BakeTiles(tiles, Config.ComputePerframe);
+                _multiScene.BakeTiles(tiles, Config.ComputePerframe, "D:/OCLocal");
             }
             else
             {

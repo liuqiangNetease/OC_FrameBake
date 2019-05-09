@@ -16,10 +16,6 @@ namespace OC
             this.owner = owner;
         }
 
-        ~Cell()
-        {
-            //Debug.Log("clear cell suc!");
-        }
         public List<Cell> children = new List<Cell>();
 
         public Cell parent = null;
@@ -32,21 +28,13 @@ namespace OC
             set { _aabb = value; }
         }
 
+        public Dictionary<Index, BitArray> visFlagDic = new Dictionary<Index, BitArray>();
         public HashSet<RenderableObj> visibleModelList = new HashSet<RenderableObj>();
 
-        public Dictionary<Index, BitArray> visFlagDic = new Dictionary<Index, BitArray>();
+#if UNITY_EDITOR
+        
 
-        public void AddChild(Cell child)
-        {
-            child.visibleModelList.Clear();
-            child.parent = this;
-            children.Add(child);
-            for (int i = 0; i < child.children.Count; i++)
-                children.Add(child.children[i]);
-            child.children.Clear();
-
-        }
-
+      
         public static void PrepareToGetRenderableModels()
         {
             if (Config.SoftRenderer)
@@ -178,57 +166,13 @@ namespace OC
             var updateVisTime = OCProfiler.Stop();
         }
 
-        public void Load(OCDataReader reader)
+        public void Clear()
         {
-            _aabb.center = reader.ReadVector3();
+            visFlagDic = null;
+            visibleModelList = null;
+            children = null;
+            parent = null;
 
-            _aabb.size = new Vector3(owner.CellSize, owner.CellSize, owner.CellSize);
-
-            if (owner.owner.Owner == null)
-            {
-                Byte[] datas = reader.ReadBytes(owner.owner.MaxGameObjectIDCount / 8);
-                BitArray flag = new BitArray(datas);
-                visFlagDic.Add(new Index(0, 0), flag);
-            }
-            else
-            {               
-                //Byte[] mainDatas = reader.ReadBytes(0);
-                //BitArray mainFlag = new BitArray(mainDatas);
-                //visFlagDic.Add(Index.InValidIndex, mainFlag);
-
-                Index currentIndex = owner.owner.TileIndex;
-                for (int i = -1; i < 2; i++)
-                    for (int j = -1; j < 2; j++)
-                    {
-                        Index newIndex = currentIndex + new Index(i, j);
-                        if (owner.owner.Owner.IsValidIndex(newIndex))
-                        {
-                            //var multiScene = owner.owner.Owner as MultiScene;
-                            //var scene = multiScene.GetTile(newIndex) as SingleScene;
-
-                            //if (scene != null)
-                            {
-                                var maxGameObjectIdCount = owner.owner.GetNeighborSceneMaxObjectId(newIndex);
-                                if (maxGameObjectIdCount > 0)
-                                {
-                                    Byte[] datas = reader.ReadBytes(maxGameObjectIdCount / 8);
-                                    BitArray flag = new BitArray(datas);
-                                    visFlagDic.Add(new Index(i, j), flag);
-                                }
-                            }
-                        }
-                    }
-            }
-
-            int childCount = reader.ReadInt();
-
-            for (int i = 0; i < childCount; i++)
-            {
-                Cell cell = new Cell(owner);
-                cell._aabb.center = reader.ReadVector3();
-                cell._aabb.size = Vector3.one;
-                AddChild(cell);
-            }
         }
 
         public void Save(OCDataWriter writer)
@@ -259,6 +203,10 @@ namespace OC
                         if (owner.owner.Owner.IsValidIndex(newIndex))
                         {
                             var multiScene = owner.owner.Owner as MultiScene;
+                            if(multiScene.tileMap.Count > 9)
+                            {
+                                Debug.LogError("tile count=" + multiScene.tileMap.Count);
+                            }
                             var scene = multiScene.ExistTile(newIndex) as SingleScene;
                             if (scene != null)
                             {
@@ -321,7 +269,71 @@ namespace OC
 
            // Debug.LogFormat("Cell Init Time {0}, Save Time {1}", cellSaveInitTime, cellSaveTime);
         }
+#endif
 
+        public void AddChild(Cell child)
+        {
+            child.visibleModelList.Clear();
+            child.parent = this;
+            children.Add(child);
+            for (int i = 0; i < child.children.Count; i++)
+                children.Add(child.children[i]);
+            child.children.Clear();
+
+        }
+
+        public void Load(OCDataReader reader)
+        {
+            _aabb.center = reader.ReadVector3();
+
+            _aabb.size = new Vector3(owner.CellSize, owner.CellSize, owner.CellSize);
+
+            if (owner.owner.Owner == null)
+            {
+                Byte[] datas = reader.ReadBytes(owner.owner.MaxGameObjectIDCount / 8);
+                BitArray flag = new BitArray(datas);
+                visFlagDic.Add(new Index(0, 0), flag);
+            }
+            else
+            {
+                //Byte[] mainDatas = reader.ReadBytes(0);
+                //BitArray mainFlag = new BitArray(mainDatas);
+                //visFlagDic.Add(Index.InValidIndex, mainFlag);
+
+                Index currentIndex = owner.owner.TileIndex;
+                for (int i = -1; i < 2; i++)
+                    for (int j = -1; j < 2; j++)
+                    {
+                        Index newIndex = currentIndex + new Index(i, j);
+                        if (owner.owner.Owner.IsValidIndex(newIndex))
+                        {
+                            //var multiScene = owner.owner.Owner as MultiScene;
+                            //var scene = multiScene.GetTile(newIndex) as SingleScene;
+
+                            //if (scene != null)
+                            {
+                                var maxGameObjectIdCount = owner.owner.GetNeighborSceneMaxObjectId(newIndex);
+                                if (maxGameObjectIdCount > 0)
+                                {
+                                    Byte[] datas = reader.ReadBytes(maxGameObjectIdCount / 8);
+                                    BitArray flag = new BitArray(datas);
+                                    visFlagDic.Add(new Index(i, j), flag);
+                                }
+                            }
+                        }
+                    }
+            }
+
+            int childCount = reader.ReadInt();
+
+            for (int i = 0; i < childCount; i++)
+            {
+                Cell cell = new Cell(owner);
+                cell._aabb.center = reader.ReadVector3();
+                cell._aabb.size = Vector3.one;
+                AddChild(cell);
+            }
+        }
         public void Do()
         {
             foreach (var pair in visFlagDic)
@@ -373,14 +385,7 @@ namespace OC
             }
         }
 
-        public void Clear()
-        {
-            visFlagDic = null;
-            visibleModelList = null;
-            children = null;
-            parent = null;
-            
-        }
+        
     }
 }
 

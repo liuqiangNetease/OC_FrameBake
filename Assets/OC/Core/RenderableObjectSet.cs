@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
@@ -89,7 +90,7 @@ namespace OC
                 maxId++;
             }
 
-#if UNITY_EDITOR   
+#if UNITY_EDITOR
             if (!Config.IsBatchMode && progress != null)
             {
                 EditorUtility.ClearProgressBar();

@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if UNITY_EDITOR
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -411,7 +412,7 @@ namespace OC.Raster
             return RasterVectorUtils.Cross(a, b);
         }
 
-#if UNITY_EDITOR
+
         public static void Draw(IList<VolumeCell> cells)
         {
             if (cells != null && cells.Count > 0)
@@ -434,6 +435,6 @@ namespace OC.Raster
             var center = cell.aabb.center;
             Gizmos.DrawWireCube(center, cell.aabb.size);
         }
-#endif
     }
 }
+#endif

@@ -8,7 +8,9 @@ namespace OC
 {
     public abstract class World
     {
+#if UNITY_EDITOR
         public BoundsOctree<MeshRenderer> treeMesh;
+#endif
 
         public Dictionary<Index, Tile> tileMap = new Dictionary<Index, Tile>();
 
@@ -161,15 +163,10 @@ namespace OC
             tileMap.Clear();
         }
 
-        public void LoadTile(Tile tile)
+        public void OpenScene(Tile tile)
         {
             tile.Open();
             tileMap[tile.TileIndex] = tile;
-        }
-
-        public bool InitOnLoad(Tile tile)
-        {
-            return tile.InitOnOpen();
         }
 
         public void UnloadTile(Tile tile)

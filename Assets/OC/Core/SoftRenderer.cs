@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿#if UNITY_EDITOR
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
@@ -12,14 +13,14 @@ namespace OC
     }
     public class SoftRenderer
     {
-        #region [ Static ]
+#region [ Static ]
         private static readonly SoftRenderer _instance = new SoftRenderer();
 
         public static SoftRenderer Instance
         {
             get { return _instance; }
         }
-        #endregion
+#endregion
         struct TagZBuffer
         {
             public float zValue; // 1/z 
@@ -743,4 +744,5 @@ namespace OC
         }
     }
 }
+#endif
 

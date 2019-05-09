@@ -1,4 +1,6 @@
-﻿using System;
+﻿
+#if UNITY_EDITOR
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -250,7 +252,7 @@ namespace OC.Raster
             // Latitude ---
             int nbLat = 16;
 
-            #region Vertices
+#region Vertices
             Vector3[] vertices = new Vector3[(nbLong + 1) * nbLat + 2];
             float _pi = Mathf.PI;
             float _2pi = _pi * 2f;
@@ -272,10 +274,10 @@ namespace OC.Raster
                 }
             }
             vertices[vertices.Length - 1] = Vector3.up * -radius;
-            #endregion
+#endregion
 
 
-            #region Triangles
+#region Triangles
             int nbFaces = vertices.Length;
             int nbTriangles = nbFaces * 2;
             int nbIndexes = nbTriangles * 3;
@@ -315,7 +317,7 @@ namespace OC.Raster
                 triangles[i++] = vertices.Length - (lon + 2) - 1;
                 triangles[i++] = vertices.Length - (lon + 1) - 1;
             }
-            #endregion
+#endregion
 
             SphereVertices = vertices;
             SphereTriangles = triangles;
@@ -544,3 +546,4 @@ namespace OC.Raster
 
 
 }
+#endif

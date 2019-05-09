@@ -32,9 +32,9 @@ namespace OC.Editor
         private static void GenerateOCGenMapConfigFile(string mapName, bool bakeForTile, int processorNum)
         {
             var config = GetSceneConfig(mapName);
-            if (config.MapName == string.Empty)
+            if (string.IsNullOrEmpty(config.MapName))
             {
-                Debug.LogErrorFormat("Can not found oc map config item for map {0}", mapName);
+                Debug.LogErrorFormat("batch mode Can not found oc map config item for map {0}", mapName);
                 return;
             }
 
@@ -71,7 +71,7 @@ namespace OC.Editor
                 var startTile = 0;
                 for (int index = 0; index < processorNum; ++index)
                 {
-                    Debug.LogFormat("Baking Tile Count for Processor {0} is {1}", index, perCountArray[index]);
+                    Debug.LogFormat("batch mode Baking Tile Count for Processor {0} is {1}", index, perCountArray[index]);
                     if (bakeForTile)
                     {
                         WriteJsonFile("./Assets", index, config);
@@ -108,9 +108,9 @@ namespace OC.Editor
             if (!OpenAllScenes(mapName, tileX, tileY))
                 return;*/
 
-            ClearLightmappingData();
+            //ClearLightmappingData();
             //GenerateAllSceneRenderableObjectID();
-        }      
+        }
 
         /*private static bool OpenAllScenes(string mapName, int tileX, int tileY)
         {
@@ -119,7 +119,7 @@ namespace OC.Editor
 
             //open new scenes
             var config = GetSceneConfig(mapName);
-            if (config.MapName == string.Empty)
+            if (string.IsNullOrEmpty(config.MapName))
             {
                 return false;
             }
@@ -140,14 +140,14 @@ namespace OC.Editor
                             }
                         }
 
-                        sceneNames.Add(String.Format("{0}/{1}.unity", config.SceneAssetPath,
+                        sceneNames.Add(String.Format("{0}/{1}.unity", config.GetSceneAssetPath,
                             String.Format(config.SceneNamePattern, x, y)));
                     }
                 }
             }
             else
             {
-                sceneNames.Add(String.Format("{0}/{1}.unity", config.SceneAssetPath, config.SceneNamePattern));
+                sceneNames.Add(String.Format("{0}/{1}.unity", config.GetSceneAssetPath, config.SceneNamePattern));
             }
 
             foreach (var sceneName in sceneNames)
@@ -193,11 +193,11 @@ namespace OC.Editor
             var index = int.Parse(System.Environment.GetCommandLineArgs()[2]);
             PrintArgs(2);
 
-            Debug.LogFormat("Generate OC Data Project Asset Path {0} index {1}", projectAssetPath, index);
+            Debug.LogFormat("batch mode Generate OC Data Project Asset Path {0} index {1}", projectAssetPath, index);
             var config = LoadSceneConfig(projectAssetPath, 0);
-            if (config.MapName == string.Empty)
+            if (string.IsNullOrEmpty(config.MapName))
             {
-                Debug.LogErrorFormat("Can not get oc map config for stream scene in oc data generation, path {0} index {1}", projectAssetPath, 0);
+                Debug.LogErrorFormat("batch mode Can not find json file, path {0} index {1}", projectAssetPath, 0);
                 ExitOnBatchMode();
                 return;
             }
@@ -207,13 +207,12 @@ namespace OC.Editor
             if (config.IsStreamScene)
             {
                 config = LoadSceneConfig(projectAssetPath, index);
-                if (config.MapName != string.Empty)
+                if (string.IsNullOrEmpty(config.MapName) == false)
                 {
                     BakeStreamSceneByConfig(config);
                 }
                 else
-                {
-                    Debug.LogErrorFormat("Can not get oc map config for stream scene in oc data generation, path {0} index {1}", projectAssetPath, 0);
+                {                    
                     ExitOnBatchMode();
                 }
             }
@@ -229,30 +228,32 @@ namespace OC.Editor
 
         private static void BakeSingleSceneByConfig(OCSceneConfig config)
         {
+            Debug.Log("batch mode Do bake single");
             ConfigGenerator(config);
             if (!Util.IsSceneOpened(config.SceneNamePattern))
             {
-                Debug.LogFormat("Open Scene {0}", config.SceneNamePattern);
-                EditorSceneManager.OpenScene(String.Format("{0}/{1}.unity", config.SceneAssetPath, config.SceneNamePattern));
+                Debug.LogFormat("batch mode Open Scene {0}", config.SceneNamePattern);
+                EditorSceneManager.OpenScene(String.Format("{0}/{1}.unity", config.GetSceneAssetPath(), config.SceneNamePattern));
             }
 
 
-            var scene = new SingleScene(config.SceneAssetPath, config.SceneNamePattern, Index.InValidIndex);
+            var scene = new SingleScene(config.GetSceneAssetPath(), config.SceneNamePattern, Index.InValidIndex);
             scene.tempPath = config.TemporaryContainer;
-            scene.Bake(config.ComputePerframe);
+            scene.Bake(config.ComputePerframe, config.TemporaryContainer);
         }
         private static void BakeStreamSceneByConfig(OCSceneConfig config)
         {
+            Debug.Log("batch mode Do bake stream!");
             ConfigGenerator(config);
             var tiles = config.indices;
             if (tiles != null)
             {
-                var multiScene = new MultiScene(config.SceneAssetPath, config.SceneNamePattern, config.TileDimension, config.TileSize);
-                multiScene.BakeTiles(tiles, config.ComputePerframe);
+                var multiScene = new MultiScene(config.GetSceneAssetPath(), config.SceneNamePattern, config.TileDimension, config.TileSize);
+                multiScene.BakeTiles(tiles, config.ComputePerframe, config.TemporaryContainer);
             }
             else
             {
-                Debug.LogErrorFormat("Can not get bake tiles for map {0}", config.MapName);
+                Debug.LogErrorFormat("batch mode Can not get bake tiles for map {0}", config.MapName);
                 ExitOnBatchMode();
             }
         }
@@ -272,7 +273,7 @@ namespace OC.Editor
             //Config.CustomVolumeSize = new Vector3(10, 10, 10);
 
             var config = LoadSceneConfig(projectPath, 0);
-            if (config.MapName == string.Empty)
+            if (string.IsNullOrEmpty(config.MapName))
             {
                 Debug.LogErrorFormat("Can not get oc map config for stream scene in oc data generation, path {0} index {1}", projectPath, 0);
                 ExitOnBatchMode();
@@ -290,10 +291,10 @@ namespace OC.Editor
             if (config.IsStreamScene)
             {
                 ConfigGenerator(config);
-                var streamScene = new MultiScene(config.SceneAssetPath, config.SceneNamePattern, config.TileDimension, config.TileSize);
+                var streamScene = new MultiScene(config.GetSceneAssetPath(), config.SceneNamePattern, config.TileDimension, config.TileSize);
                 var tileList = new List<Index>();
                 tileList.Add(new Index(x, y));
-                streamScene.BakeTiles(tileList, config.ComputePerframe);
+                streamScene.BakeTiles(tileList, config.ComputePerframe, config.TemporaryContainer);
             }
             else if(index == 0)
             {
@@ -312,7 +313,7 @@ namespace OC.Editor
             PrintArgs(1);
 
             var config = LoadSceneConfig(projectPath, 0);
-            if (config.MapName == string.Empty)
+            if (string.IsNullOrEmpty(config.MapName))
             {
                 Debug.LogErrorFormat("Can not get oc map config for stream scene in oc data mergence, path {0} index {1}", projectPath, 0);
                 return;
@@ -324,7 +325,7 @@ namespace OC.Editor
 
         public static void MergeStreamSceneOCData(OCSceneConfig config)
         {
-            var scene = new MultiScene(config.SceneAssetPath, config.SceneNamePattern, config.TileDimension, config.TileSize);
+            var scene = new MultiScene(config.GetSceneAssetPath(), config.SceneNamePattern, config.TileDimension, config.TileSize);
             scene.MergeOCData(config.TemporaryContainer);
             scene.CopyOCDataTo(config.TemporaryContainer);
         }
@@ -332,7 +333,7 @@ namespace OC.Editor
 
         //------------------------------------
         #region DiffPatch
-        private static readonly string OCPatchFileSuffix = "_oc_patch.txt";
+        
         public static void ApplyOCData()
         {
             var mapName = System.Environment.GetCommandLineArgs()[1];
@@ -357,10 +358,10 @@ namespace OC.Editor
         public static void GenerateSceneOCDiffPatch(string sceneName, string temporaryContainer)
         {
             var scene = SceneManager.GetSceneByName(sceneName);
-            var diffFilePath = scene.path.Replace(".unity", OCPatchFileSuffix);
+            var diffFilePath = scene.path.Replace(".unity", Config.OCPatchFileSuffix);
             SaveSceneOCDiffPatch(scene, diffFilePath);
             //copy to temporary container
-            var destFilePath = Path.Combine(temporaryContainer, String.Format("{0}{1}", sceneName, OCPatchFileSuffix));
+            var destFilePath = Path.Combine(temporaryContainer, String.Format("{0}{1}", sceneName, Config.OCPatchFileSuffix));
             Util.CopyTo(diffFilePath, destFilePath);
         }
 
@@ -421,7 +422,7 @@ namespace OC.Editor
         private static bool ApplyOCDiffPatch(string mapName)
         {
             var config = GetSceneConfig(mapName);
-            if (config.MapName == string.Empty)
+            if (string.IsNullOrEmpty(config.MapName))
             {
                 return false;
             }
@@ -434,16 +435,16 @@ namespace OC.Editor
                 foreach (var tile in tiles)
                 {
                     var sceneName = config.GetSceneNameOf(tile.x, tile.y);
-                    var diffFilePath = Path.Combine(temporaryContainer, String.Format("{0}{1}", sceneName, OCPatchFileSuffix));
-                    success = ApplyOCDiffPatch(config.SceneAssetPath, sceneName, diffFilePath, true);
+                    var diffFilePath = Path.Combine(temporaryContainer, String.Format("{0}{1}", sceneName, Config.OCPatchFileSuffix));
+                    success = ApplyOCDiffPatch(config.GetSceneAssetPath(), sceneName, diffFilePath, true);
                     if (!success)
                         break;
                 }
             }
             else
             {
-                var diffFilePath = Path.Combine(temporaryContainer, String.Format("{0}{1}", config.SceneNamePattern, OCPatchFileSuffix));
-                success = ApplyOCDiffPatch(config.SceneAssetPath, config.SceneNamePattern, diffFilePath, false);
+                var diffFilePath = Path.Combine(temporaryContainer, String.Format("{0}{1}", config.SceneNamePattern, Config.OCPatchFileSuffix));
+                success = ApplyOCDiffPatch(config.GetSceneAssetPath(), config.SceneNamePattern, diffFilePath, false);
             }
             
             return success;
@@ -597,10 +598,10 @@ namespace OC.Editor
         private static void CopyOCData(string mapName, string projectPath)
         {
             var config = GetSceneConfig(mapName);
-            if (config.MapName != string.Empty)
+            if (string.IsNullOrEmpty(config.MapName) == false)
             {
                 var ocDataFilePath = config.GetOCDataFilePath();
-                var destDirectory = Path.Combine(projectPath, config.SceneAssetPath);
+                var destDirectory = Path.Combine(projectPath, config.GetSceneAssetPath());
                 var destFilePath = Path.Combine(destDirectory, config.GetOCDataFileName());
 
                 if (File.Exists(destFilePath))
@@ -612,7 +613,7 @@ namespace OC.Editor
                 {
                     File.Copy(ocDataFilePath, destFilePath);
 
-                    var assetFilePath = Path.Combine(config.SceneAssetPath, config.GetOCDataFileName());
+                    var assetFilePath = Path.Combine(config.GetSceneAssetPath(), config.GetOCDataFileName());
                     AssetDatabase.ImportAsset(assetFilePath);
                     var importer = AssetImporter.GetAtPath(assetFilePath);
                     importer.SetAssetBundleNameAndVariant("OC", null);
@@ -665,35 +666,60 @@ namespace OC.Editor
         #endregion
 
         //----------------------------
-
+       
         public static OCSceneConfig GetSceneConfig(string mapName)
         {
             OCSceneConfig ret = new OCSceneConfig();
-            var filePath = "Assets/Assets/template/OCScenesConfig.json";
-            if (!File.Exists(filePath))
+
+            try
             {
-                var otherFilePath = "Assets/Assets/CoreRes/template/OCScenesConfig.json";
-                if (!File.Exists(otherFilePath))
+                var filePath = "Assets/template/OCScenesConfig.json";
+                if (UnityEditorInternal.InternalEditorUtility.inBatchMode)
                 {
-                    Debug.LogErrorFormat("Can not found config file: \"OCScenesConfig.json\" from path {0} or {1}", filePath, otherFilePath);
-                    return ret;
+                    if (!File.Exists(filePath))
+                    {
+                        var otherFilePath = "Assets/CoreRes/template/OCScenesConfig.json";
+                        if (!File.Exists(otherFilePath))
+                        {
+                            Debug.LogErrorFormat("batch mode  Can not found config file: \"OCScenesConfig.json\" from path {0} or {1}", filePath, otherFilePath);
+                            return ret;
+                        }
+
+                        filePath = otherFilePath;
+                    }
+                }
+                else
+                {
+                    if (!File.Exists(filePath))
+                    {
+                        var otherFilePath = "Assets/Assets/CoreRes/template/OCScenesConfig.json";
+                        if (!File.Exists(otherFilePath))
+                        {
+                            Debug.LogErrorFormat("Can not found config file: \"OCScenesConfig.json\" from path {0} or {1}", filePath, otherFilePath);
+                            return ret;
+                        }
+
+                        filePath = otherFilePath;
+                    }
                 }
 
-                filePath = otherFilePath;
+                string templateContent = Util.LoadJson(filePath);
+
+                var scenesConfig = JsonUtility.FromJson<OCScenesConfig>(templateContent);
+
+
+                foreach (var sceneConfig in scenesConfig.scenesConfig)
+                {
+                    if (sceneConfig.MapName == mapName)
+                    {
+                        ret = sceneConfig;
+                        break;
+                    }
+                }
             }
-
-            string templateContent = Util.LoadJson(filePath);
-
-            var scenesConfig = JsonUtility.FromJson<OCScenesConfig>(templateContent);
-
-
-            foreach (var sceneConfig in scenesConfig.scenesConfig)
+            catch(Exception e)
             {
-                if (sceneConfig.MapName == mapName)
-                {
-                    ret = sceneConfig;
-                    break;
-                }
+                Debug.LogError(e);
             }
 
             return ret;
@@ -719,29 +745,43 @@ namespace OC.Editor
 
         private static void WriteJsonFile(string path, int index, OCSceneConfig config)
         {
-            var fileName = String.Format("OCSceneConfig{0}.json", index);
-            var filePath = Path.Combine(path, fileName);
+            try
+            {
+                var fileName = String.Format("OCSceneConfig{0}.json", index);
+                var filePath = Path.Combine(path, fileName);
 
-            string jsonText = JsonUtility.ToJson(config, true);
+                string jsonText = JsonUtility.ToJson(config, true);
 
-            File.WriteAllText(filePath, jsonText);
+                File.WriteAllText(filePath, jsonText);
+            }
+            catch(Exception e)
+            {
+                Debug.LogError("batch mode:" + e);
+            }
         }
 
         public static OCSceneConfig LoadSceneConfig(string projectAssetPath, int index)
         {
             OCSceneConfig ret = new OCSceneConfig();
 
-            var filePath = Path.Combine(projectAssetPath, String.Format("OCSceneConfig{0}.json", index));
-
-            if (!File.Exists(filePath))
+            try
             {
-                Debug.LogErrorFormat("oc gen map config file {0} does not exist!", filePath);
-                return ret;
+                var filePath = Path.Combine(projectAssetPath, String.Format("OCSceneConfig{0}.json", index));
+
+                if (!File.Exists(filePath))
+                {
+                    Debug.LogErrorFormat("batch mode json file {0} does not exist!", filePath);
+                    return ret;
+                }
+
+                string jsonContent = Util.LoadJson(filePath);
+
+                ret = JsonUtility.FromJson<OCSceneConfig>(jsonContent);
             }
-
-            string jsonContent = Util.LoadJson(filePath);
-
-            ret = JsonUtility.FromJson<OCSceneConfig>(jsonContent);
+            catch(Exception e)
+            {
+                Debug.LogError("batch mode:" + e);
+            }
 
             return ret;
         }
@@ -767,7 +807,7 @@ namespace OC.Editor
             Config.PerframeExecCount = config.PerframeExecCount;
             Config.IsBatchMode = UnityEditorInternal.InternalEditorUtility.inBatchMode;
 
-            Debug.LogFormat("OC Configuration: Batch Mode {0} Use Compute Shader {1} Use Visible Cache {2} SavePerCell {3} ClearOnSave {4} ComputePerframe {5} PerframeExecCount {6} CellSize {7} MinHeight {8} MaxHeight {9} MergeObjectId {10} MergeCell {11} Clear Light Probes {12}", 
+            Debug.LogFormat("batch mode {0} Use Compute Shader {1} Use Visible Cache {2} SavePerCell {3} ClearOnSave {4} ComputePerframe {5} PerframeExecCount {6} CellSize {7} MinHeight {8} MaxHeight {9} MergeObjectId {10} MergeCell {11} Clear Light Probes {12}", 
                 Config.IsBatchMode,
                 Config.UseComputeShader, Config.UseVisibleCache, 
                 Config.SavePerCell, Config.ClearOnSave,
@@ -779,7 +819,7 @@ namespace OC.Editor
 
         private static void PrintSystemInfo()
         {
-            Debug.LogFormat("ProcessorCount {0}, Total Physics Memory {1} mb, Graphics Device Name {2}, Graphics Memory Size {3} mb, Graphics Shader Level {4}",
+            Debug.LogFormat("batch mode ProcessorCount {0}, Total Physics Memory {1} mb, Graphics Device Name {2}, Graphics Memory Size {3} mb, Graphics Shader Level {4}",
                 SystemInfo.processorCount, SystemInfo.systemMemorySize, SystemInfo.graphicsDeviceName, SystemInfo.graphicsMemorySize, SystemInfo.graphicsShaderLevel);
         }
 
@@ -787,14 +827,14 @@ namespace OC.Editor
         {
             for (int i = 1; i <= argNum; ++i)
             {
-                Debug.LogFormat("Args {0}, Value {1}", i, System.Environment.GetCommandLineArgs()[i]);
+                Debug.LogFormat("batch mode Args {0}, Value {1}", i, System.Environment.GetCommandLineArgs()[i]);
             }
         }
         private static void ExitOnBatchMode()
         {
             if (UnityEditorInternal.InternalEditorUtility.inBatchMode)
             {
-                Debug.LogFormat("Exit Editor Application On Batch Mode.");
+                Debug.LogFormat("batch mode Exit Editor Application On Batch Mode.");
                 EditorApplication.Exit(0);
             }
         }

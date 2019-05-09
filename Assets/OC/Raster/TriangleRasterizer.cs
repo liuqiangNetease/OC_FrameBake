@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿#if UNITY_EDITOR
+using UnityEngine;
 
 namespace OC.Raster
 {
@@ -152,3 +153,4 @@ namespace OC.Raster
         }
     }
 }
+#endif

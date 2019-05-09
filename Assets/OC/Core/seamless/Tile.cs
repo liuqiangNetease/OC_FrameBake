@@ -59,7 +59,7 @@ namespace OC
             
         }
 
-        public virtual bool InitOnOpen()
+        public virtual bool GeneraterRenderableObjectID()
         {
             return true;
         }
@@ -114,7 +114,7 @@ namespace OC
             
         }
 
-        public virtual bool Bake(bool bFrame)
+        public virtual bool Bake(bool bFrame, string tempPath)
         {
             return true;
         }

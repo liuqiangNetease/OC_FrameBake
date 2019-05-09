@@ -49,7 +49,7 @@ namespace OC.Editor
         private void OnGUI() 
         {
              //GUILayout.Label("scene name", EditorStyles.boldLabel);
-            sceneName = EditorGUILayout.TextField("scene name", sceneName);
+            sceneName = EditorGUILayout.TextField("scene name", sceneName);            
             processNumber = EditorGUILayout.IntField("process number", processNumber);
             //cellSize = EditorGUILayout.Slider("cellSize", cellSize, 0.1f, 256);
             //screenWidth = EditorGUILayout.IntField("Screen Width", screenWidth);
@@ -87,8 +87,8 @@ namespace OC.Editor
             //EditorGUILayout.EndToggleGroup();
 
             if (GUILayout.Button("test create stream scene"))
-            {              
-                OCGenerator.GenerateTestStreamScenes("Assets/Maps/maps/0001/Scenes/");
+            {               
+                OCGenerator.GenerateTestStreamScenes(sceneName);
             }
 
             if (GUILayout.Button("TestCreateAllScenesJson"))
@@ -114,6 +114,7 @@ namespace OC.Editor
             if (GUILayout.Button("BakeAll"))
             {
                 OCGenerator.TestBakeAll(sceneName);
+                //OCGenerator.TestMergeOCDataForStreamScene();
             }
 
             if(GUILayout.Button("MergeOCData"))
@@ -128,49 +129,13 @@ namespace OC.Editor
                 test.Test(-1);
             }
 
-            if (GUILayout.Button("TestLoadOCData"))
-            {
-
-                OCSceneConfig config = OCGenerator.GetSceneConfig(sceneName);
-                if (config.IsStreamScene)
-                {
-                    var ocDataFilePath = MultiScene.GetOCDataFilePath(config.SceneAssetPath, config.SceneNamePattern);
-                    if (!File.Exists(ocDataFilePath))
-                    {
-                        EditorUtility.DisplayDialog("文件不存在", string.Format("OC 数据文件 {0} 不存在!", ocDataFilePath), "确定");
-                        return;
-                    }
-                    int TileDimension = config.TileDimension;
-                    byte[] data = null;
-                    using (var fileStream = File.Open(ocDataFilePath, FileMode.Open))
-                    {
-                        data = new byte[fileStream.Length];
-                        if (fileStream.Read(data, 0, data.Length) != data.Length)
-                        {
-                            EditorUtility.DisplayDialog("文件读取失败", string.Format("读取 OC 数据文件 {0} 失败!", ocDataFilePath), "确定");
-                            return;
-                        }
-                    }
-
-                    streamScene = new MultiScene( config.SceneAssetPath, config.SceneNamePattern, TileDimension, config.TileSize, data);
-                    for(int i=0; i< 2; i++)
-                        for(int j=0; j< 2; j++)
-                            streamScene.Load(i, j);
-                  
-                }
-                else
-                {
-                    singleScene = new OC.SingleScene(config.SceneAssetPath, config.SceneNamePattern, Index.InValidIndex);
-                    singleScene.TestLoad();
-                }
-            }
-
             if (GUILayout.Button("LoadAllOCData"))
             {
+                OCGenerator.OpenScenes(sceneName);
                 OCSceneConfig config = OCGenerator.GetSceneConfig(sceneName);
                 if (config.IsStreamScene)
                 {
-                    var ocDataFilePath = MultiScene.GetOCDataFilePath(config.SceneAssetPath, config.SceneNamePattern);
+                    var ocDataFilePath = MultiScene.GetOCDataFilePath(config.GetSceneAssetPath(), config.SceneNamePattern);
                     if (!File.Exists(ocDataFilePath))
                     {
                         EditorUtility.DisplayDialog("文件不存在", string.Format("OC 数据文件 {0} 不存在!", ocDataFilePath), "确定");
@@ -188,15 +153,15 @@ namespace OC.Editor
                         }
                     }
 
-                    streamScene = new MultiScene(config.SceneAssetPath, config.SceneNamePattern, TileDimension, config.TileSize, data);
-                    for (int i = 0; i < 8; i++)
-                        for (int j = 0; j < 8; j++)
+                    streamScene = new MultiScene(config.GetSceneAssetPath(), config.SceneNamePattern, TileDimension, config.TileSize, data);
+                    for (int i = 0; i < TileDimension; i++)
+                        for (int j = 0; j < TileDimension; j++)
                             streamScene.Load(i, j);
 
                 }
                 else
                 {
-                    singleScene = new OC.SingleScene(config.SceneAssetPath, config.SceneNamePattern, Index.InValidIndex);
+                    singleScene = new OC.SingleScene(config.GetSceneAssetPath(), config.SceneNamePattern, Index.InValidIndex);
                     singleScene.TestLoad();
                 }
 

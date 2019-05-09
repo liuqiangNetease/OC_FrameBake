@@ -9,23 +9,18 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace ArtPlugins
-{
-    public class MultiTagBase: MonoBehaviour
-    {
-        public int renderId;
 
-        public static int InvalidRenderId = -1;
-    }
-}
 namespace OC
 {
 
     public class MultiScene: World
     {
+#if UNITY_EDITOR
         int curBakeScene;
         List<Index> bakeTiles;
         Window _window;
+        string tempPath;
+#endif
 
         private string _namePattern;
         public string NamePattern
@@ -56,8 +51,14 @@ namespace OC
 
         public MultiScene(string path, string namePattern, int tileDimension, int tileSize, byte[] data = null)
         {
+#if UNITY_EDITOR
             curBakeScene = 0;
             _window = null;
+
+            treeMesh = null;
+            if(Config.SoftRenderer)
+                treeMesh = new BoundsOctree<MeshRenderer>(10000, Vector3.zero, 8 * Config.CellSize, 1.25f);
+#endif
 
             Path = path;
             NamePattern = namePattern;
@@ -65,11 +66,7 @@ namespace OC
             _tileDimension = tileDimension;
             _tileSize = tileSize;
             _data = data;
-
             
-            treeMesh = null;
-            if(Config.SoftRenderer)
-                treeMesh = new BoundsOctree<MeshRenderer>(10000, Vector3.zero, 8 * Config.CellSize, 1.25f);
 
             SetWorldLimits(0, _tileDimension * _tileSize, 0, _tileDimension * tileSize, _tileDimension, _tileDimension);
 
@@ -82,35 +79,6 @@ namespace OC
                 }
             }
         }
-
-        /*public void BakeOne(int x, int y)
-        {
-            //int tileX = 8, tileY = 8;
-            //int tileSizeX = tileSize;
-            //int tileSizeY = tileSize;
-           // SetWorldLimits(0, tileX * tileSizeX, 0, tileY * tileSizeY, tileX, tileY);
-
-            Window window = new Window(this, 1);
-            Index mainIndex = new Index(x, y);
-            window.Init(mainIndex);
-            window.Bake(Config.ComputePerframe);
-          
-        }
-
-        public void BakeAll()
-        {
-
-            Window window = new Window(this, 1);
-
-            for (int i =0; i < TileDimension; i++)
-            for (int j = 0; j < TileDimension; j++)
-            {
-                //Window window = new Window(this, 1);
-                Index mainIndex = new Index(i, j);
-                window.Init(mainIndex);
-                window.Bake(false);
-            }
-        }*/
 
         public Cell GetCurrentCell(Vector3 pos)
         {
@@ -129,50 +97,6 @@ namespace OC
 
             return cell;
         }
-        //
-        public RenderableObj GetRenderableObjectByMeshRenderer(MeshRenderer mesh)
-        {
-            
-            RenderableObj ret = null;
-            foreach (var pair in tileMap)
-            {
-                SingleScene singleScene = pair.Value as SingleScene;
-                var temp = singleScene.GetRenderableObjectByMeshRenderer(mesh);
-                if (temp != null)
-                {
-                    ret = temp;
-                    break;
-                }
-            }
-
-            return ret;
-        }
-
-        public RenderableObj GetRenderableObject(ushort id)
-        {
-            RenderableObj ret = null;
-
-            if (ret == null)
-            {
-                foreach (var pair in tileMap)
-                {
-                    SingleScene tile = pair.Value as SingleScene;
-                    ret = tile.GetRenderableObject(id);
-                    if (ret != null)
-                        break;
-                }
-            }
-
-            return ret;
-        }
-
-         public override Tile BuildTile(Index index)
-        {
-            string sceneName = GetSceneName(index.x, index.y);
-            var ret = new SingleScene(Path, sceneName, index, _data, this);
-            return ret;
-        }
-
         public void DoCulling(Vector3 position)
         {
             UpdateLoadCallbacks();
@@ -187,190 +111,9 @@ namespace OC
 
         private void UpdateLoadCallbacks()
         {
-            
+
         }
 
-
-#if UNITY_EDITOR
-
-
-        public void MergeOCData(string temporaryContainer)
-        {
-            var allSceneNames = new List<string>();
-            for (int x = 0; x < _tileDimension; ++x)
-            {
-                for (int y = 0; y < _tileDimension; ++y)
-                {
-                    allSceneNames.Add(String.Format(_namePattern, x, y));
-                }
-            }
-
-            var files = Directory.GetFiles(temporaryContainer);
-
-            var filePathList = new List<string>();
-            foreach (var f in files)
-            {
-                foreach (var sceneName in allSceneNames)
-                {
-                    if (f.Contains(sceneName))
-                    {
-                        filePathList.Add(f);
-                    }
-                }
-            }
-
-            MergeOCData(filePathList);
-        }
-
-        public void CopyOCDataTo(string temporaryContainer)
-        {
-            if (!Directory.Exists(temporaryContainer))
-            {
-                Directory.CreateDirectory(temporaryContainer);
-            }
-
-            var filePath = GetOCDataFilePath();
-            var fileName = GetOCDataFileName(_namePattern);
-            var destFilePath = System.IO.Path.Combine(temporaryContainer, fileName);
-            if (File.Exists(filePath))
-            {
-                if (File.Exists(destFilePath))
-                {
-                    File.Delete(destFilePath);
-                }
-
-                File.Copy(filePath, destFilePath);
-            }
-            else
-            {
-                Debug.LogErrorFormat("OC data file {0} does not exist!", filePath);
-            }
-        }
-
-        private void MergeOCData(List<string> dataFilePathList)
-        {
-            var ocDatas = new byte[_tileDimension, _tileDimension][];
-            for (int x = 0; x < _tileDimension; ++x)
-            {
-                for (int y = 0; y < _tileDimension; ++y)
-                {
-                    ocDatas[x, y] = null;
-
-                    var fileName = GetSceneName(x, y);
-                    foreach (var filePath in dataFilePathList)
-                    {
-                        if (filePath.Contains(fileName))
-                        {
-                            ocDatas[x, y] = GetDataFrom(filePath);
-                        }
-                    }
-                }
-            }
-
-            MergeOCData(ocDatas);
-        }
-
-        
-
-        private byte[] GetDataFrom(string filePath)
-        {
-            if (File.Exists(filePath))
-            {
-                using (var fs = File.Open(filePath, FileMode.Open))
-                {
-                    var length = fs.Length;
-                    var data = new byte[length];
-                    if (fs.Read(data, 0, (int) length) != length)
-                    {
-                        Debug.LogErrorFormat("Read OC Data File Failed {0}", filePath);
-                        return null;
-                    }
-
-                    return data;
-                }
-            }
-
-
-            return null;
-        }
-
-        private void MergeOCData(byte[ , ][] ocDatas)
-        {
-            var filePath = GetOCDataFilePath();
-            try
-            {
-                Debug.LogFormat("Merge OC Data for MultiScene Name Pattern {0}", NamePattern);
-                using (var writer = new OCDataWriter(filePath, _tileDimension))
-                {
-                    for (int x = 0; x < _tileDimension; ++x)
-                    {
-                        for (int y = 0; y < _tileDimension; ++y)
-                        {
-
-                            if(!Config.IsBatchMode)
-                                Progress("合并OC数据",
-                                    String.Format("处理OC数据{0}/{1}", x * _tileDimension + y, _tileDimension * _tileDimension),
-                                    ((float) x * _tileDimension + y) / _tileDimension * _tileDimension);
-                            var data = ocDatas[x, y];
-                            var ocDataBlock = OCDataBlock.Empty;
-                            if (data != null)
-                            {
-                                var reader = new OCDataReader(data);
-                                ocDataBlock = reader.GetDataBlock(0);
-                            }
-
-                            writer.FillOCDataBlock(x * _tileDimension + y, data, ocDataBlock.Offset,
-                                ocDataBlock.Length);
-                        }
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-                throw;
-            }
-            finally
-            {
-#if UNITY_EDITOR
-                if(!Config.IsBatchMode)
-                    EditorUtility.ClearProgressBar();
-#endif
-            }
-        }
-        private bool Progress(string strTitle, string strMessage, float fT)
-        {
-#if UNITY_EDITOR
-            return EditorUtility.DisplayCancelableProgressBar(strTitle, strMessage, fT);
-#endif
-        }
-
-        public void AddData(byte[] inData)
-        {
-            
-        }
-        
-
-        private string GetOCDataFilePath()
-        {
-            return GetOCDataFilePath(_path, _namePattern);
-        }
-
-        public static string GetOCDataFilePath(string path, string namePattern)
-        {
-            var fileName = GetOCDataFileName(namePattern);
-            var filePath = System.IO.Path.Combine(path, fileName);
-            return filePath;
-        }
-
-        public static string GetOCDataFileName(string namePattern)
-        {
-            var outputName = String.Format(namePattern, "oc", "oc");
-            outputName = SingleScene.GetOCDataFileName(outputName);
-
-            return outputName;
-        }
-#endif
         public bool Load(int x, int y, Action<int, int> OnPVSLoaded = null)
         {
 
@@ -384,8 +127,8 @@ namespace OC
                 tileMap.Add(index, tile);
             }
 
-            if(sceneName == null)
-                sceneName = ((SingleScene) tile).Name;
+            if (sceneName == null)
+                sceneName = ((SingleScene)tile).Name;
             var scene = SceneManager.GetSceneByName(sceneName);
             if (!scene.isLoaded)
             {
@@ -457,50 +200,6 @@ namespace OC
                 }
             }
         }
-/*#if UNITY_EDITOR
-        public void TestLoadAll()
-        {
-            int tileX = _tileDimension, tileY = _tileDimension;
-            int tileSizeX = _tileSize;
-            int tileSizeY = _tileSize;
-            SetWorldLimits(0, tileX * tileSizeX, 0, tileY * tileSizeY, tileX, tileY);
-
-
-            for (int i = 0; i < tileX; i++)
-                for (int j = 0; j < tileY; j++)
-                {
-                    string sceneName = GetSceneName(i, j);
-                    var index = new Index(i, j);
-                    var scene = new SingleScene(Path, sceneName, index, _data, this);
-                    scene.Open();
-                    scene.Load();
-
-                    tileMap[index] = scene;
-                }
-        }
-#endif*/
-
-        /*public void Load()
-        {
-            int tileX = _tileDimension, tileY = _tileDimension;
-            int tileSizeX = _tileSize;
-            int tileSizeY = _tileSize;
-            SetWorldLimits(0, tileX * tileSizeX, 0, tileY * tileSizeY, tileX, tileY);
-
-
-            for(int i=0; i < tileX; i++)
-            for (int j = 0; j < tileY; j++)
-            {
-                string sceneName = GetSceneName(i, j);
-                var index = new Index(i, j);
-                var tile = new SingleScene(Path, sceneName, index, _tileDimension, _data, this);
-                tile.DoLoad();
-                tileMap[index] = tile;              
-            }
-        }*/
-
-
-
         public void UndoDisabledObjects()
         {
             foreach (var pair in tileMap)
@@ -510,12 +209,223 @@ namespace OC
             }
         }
 
+        //----------------------------
+#if UNITY_EDITOR
+        public RenderableObj GetRenderableObjectByMeshRenderer(MeshRenderer mesh)
+        {
+            RenderableObj ret = null;
+            foreach (var pair in tileMap)
+            {
+                SingleScene singleScene = pair.Value as SingleScene;
+                var temp = singleScene.GetRenderableObjectByMeshRenderer(mesh);
+                if (temp != null)
+                {
+                    ret = temp;
+                    break;
+                }
+            }
+            return ret;
+        }
+        public RenderableObj GetRenderableObject(ushort id)
+        {
+            RenderableObj ret = null;
+
+            if (ret == null)
+            {
+                foreach (var pair in tileMap)
+                {
+                    SingleScene tile = pair.Value as SingleScene;
+                    ret = tile.GetRenderableObject(id);
+                    if (ret != null)
+                        break;
+                }
+            }
+            return ret;
+        }
+
+         public override Tile BuildTile(Index index)
+        {
+            string sceneName = GetSceneName(index.x, index.y);
+            var ret = new SingleScene(Path, sceneName, index, _data, this);
+            return ret;
+        }
+
+        public void MergeOCData(string temporaryContainer)
+        {
+            var allSceneNames = new List<string>();
+            for (int x = 0; x < _tileDimension; ++x)
+            {
+                for (int y = 0; y < _tileDimension; ++y)
+                {
+                    allSceneNames.Add(String.Format(_namePattern, x, y));
+                }
+            }
+
+            var files = Directory.GetFiles(temporaryContainer);
+
+            var filePathList = new List<string>();
+            foreach (var f in files)
+            {
+                foreach (var sceneName in allSceneNames)
+                {
+                    if (f.Contains(sceneName) && !f.EndsWith(Config.OCPatchFileSuffix))
+                    {
+                        filePathList.Add(f);
+                    }
+                }
+            }
+
+            MergeOCData(filePathList);
+        }
+
+        public void CopyOCDataTo(string temporaryContainer)
+        {
+            if (!Directory.Exists(temporaryContainer))
+            {
+                Directory.CreateDirectory(temporaryContainer);
+            }
+
+            var filePath = GetOCDataFilePath();
+            var fileName = GetOCDataFileName(_namePattern);
+            var destFilePath = System.IO.Path.Combine(temporaryContainer, fileName);
+            if (File.Exists(filePath))
+            {
+                if (File.Exists(destFilePath))
+                {
+                    File.Delete(destFilePath);
+                }
+
+                File.Copy(filePath, destFilePath);
+            }
+            else
+            {
+                Debug.LogErrorFormat("OC data file {0} does not exist!", filePath);
+            }
+        }
+
+        private void MergeOCData(List<string> dataFilePathList)
+        {
+            var ocDatas = new byte[_tileDimension, _tileDimension][];
+            for (int x = 0; x < _tileDimension; ++x)
+            {
+                for (int y = 0; y < _tileDimension; ++y)
+                {
+                    ocDatas[x, y] = null;
+
+                    var fileName = GetSceneName(x, y);
+                    foreach (var filePath in dataFilePathList)
+                    {
+                        if (filePath.Contains(fileName))
+                        {
+                            ocDatas[x, y] = GetDataFrom(filePath);
+                        }
+                    }
+                }
+            }
+
+            MergeOCData(ocDatas);
+        }
+
+        private byte[] GetDataFrom(string filePath)
+        {
+            if (File.Exists(filePath))
+            {
+                using (var fs = File.Open(filePath, FileMode.Open))
+                {
+                    var length = fs.Length;
+                    var data = new byte[length];
+                    if (fs.Read(data, 0, (int) length) != length)
+                    {
+                        Debug.LogErrorFormat("Read OC Data File Failed {0}", filePath);
+                        return null;
+                    }
+
+                    return data;
+                }
+            }
+            return null;
+        }
+
+        private void MergeOCData(byte[ , ][] ocDatas)
+        {
+            var filePath = GetOCDataFilePath();
+            try
+            {
+                Debug.LogFormat("Merge OC Data for MultiScene Name Pattern {0}", NamePattern);
+                using (var writer = new OCDataWriter(filePath, _tileDimension))
+                {
+                    for (int x = 0; x < _tileDimension; ++x)
+                    {
+                        for (int y = 0; y < _tileDimension; ++y)
+                        {
+
+                            if(!Config.IsBatchMode)
+                                Progress("合并OC数据",
+                                    String.Format("处理OC数据{0}/{1}", x * _tileDimension + y, _tileDimension * _tileDimension),
+                                    ((float) x * _tileDimension + y) / _tileDimension * _tileDimension);
+                            var data = ocDatas[x, y];
+                            var ocDataBlock = OCDataBlock.Empty;
+                            if (data != null)
+                            {
+                                var reader = new OCDataReader(data);
+                                ocDataBlock = reader.GetDataBlock(0);
+                            }
+
+                            writer.FillOCDataBlock(x * _tileDimension + y, data, ocDataBlock.Offset,
+                                ocDataBlock.Length);
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                throw;
+            }
+            finally
+            {
+                if(!Config.IsBatchMode)
+                    EditorUtility.ClearProgressBar();
+            }
+        }
+        private bool Progress(string strTitle, string strMessage, float fT)
+        {
+            return EditorUtility.DisplayCancelableProgressBar(strTitle, strMessage, fT);
+        }
+
+        public void AddData(byte[] inData)
+        {
+            
+        }
+
+        private string GetOCDataFilePath()
+        {
+            return GetOCDataFilePath(_path, _namePattern);
+        }
+
+        public static string GetOCDataFilePath(string path, string namePattern)
+        {
+            var fileName = GetOCDataFileName(namePattern);
+            var filePath = System.IO.Path.Combine(path, fileName);
+            return filePath;
+        }
+
+        public static string GetOCDataFileName(string namePattern)
+        {
+            var outputName = String.Format(namePattern, "oc", "oc");
+            outputName = SingleScene.GetOCDataFileName(outputName);
+
+            return outputName;
+        }
+
         private void FrameBake()
         {
             if (curBakeScene >= bakeTiles.Count)
             {
                 //finish
+
                 EditorApplication.update -= FrameBake;
+
                 return;
             }
    
@@ -524,7 +434,7 @@ namespace OC
                 var index = bakeTiles[i];           
 
                 _window.Update(bakeTiles[i]);
-                if (_window.Bake(true) == false)
+                if (_window.Bake(true, tempPath) == false)
                 {
                     break;
                 }
@@ -532,8 +442,9 @@ namespace OC
             }          
         }
 
-        public bool BakeTiles(List<Index> indices, bool bFrame)
+        public bool BakeTiles(List<Index> indices, bool bFrame, string ocTempPath)
         {
+            tempPath = ocTempPath;
             if (indices.Count <= 0)
                 return false;
 
@@ -553,11 +464,12 @@ namespace OC
                 for (int i=0; i< indices.Count; i++)
                 {
                     window.Update(indices[i]);
-                    window.Bake(false);
+                    window.Bake(false, tempPath);
                 }
             }           
            
             return true;
         }
+#endif
     }
 }

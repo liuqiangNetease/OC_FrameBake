@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+#if UNITY_EDITOR
 namespace OC
 {
     public class ColorN
@@ -61,4 +62,5 @@ namespace OC
 
     }
 }
+#endif
 

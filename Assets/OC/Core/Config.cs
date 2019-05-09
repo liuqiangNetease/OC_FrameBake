@@ -34,6 +34,8 @@ namespace OC
         public static bool ClearLightProbes = true;
 
         public static bool SoftRenderer = false;
+
+        public static readonly string OCPatchFileSuffix = "_oc_patch.txt";
     }
 }
 

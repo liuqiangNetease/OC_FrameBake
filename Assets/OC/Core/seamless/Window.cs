@@ -140,24 +140,12 @@ namespace OC
                     Tile tile = pair.Value;
                     if (tile != null)
                     {
-                        _owner.LoadTile(tile);
+                        _owner.OpenScene(tile);
+                        tile.GeneraterRenderableObjectID();
                     }
                 }
 
-                //init
-                foreach (KeyValuePair<Index, Tile> pair in tileMap)
-                {
-                    Tile tile = pair.Value;
-                    if (tile != null)
-                    {
-                        initSuccess = _owner.InitOnLoad(tile);
-
-                        if (!initSuccess)
-                        {
-                            Debug.LogWarningFormat("Init Tile {0} failed", tile.TileIndex);
-                        }
-                    }
-                }
+             
             }
 
             return initSuccess;
@@ -207,22 +195,8 @@ namespace OC
                     Tile tile = pair.Value;
                     if (tile != null)
                     {
-                        _owner.LoadTile(tile);
-                    }
-                }
-
-                //init
-                foreach (KeyValuePair<Index, Tile> pair in tileMap)
-                {
-                    Tile tile = pair.Value;
-                    if (tile != null)
-                    {
-                        initSuccess = _owner.InitOnLoad(tile);
-
-                        if (!initSuccess)
-                        {
-                            Debug.LogWarningFormat("Init Tile {0} failed", tile.TileIndex);
-                        }
+                        _owner.OpenScene(tile);
+                        tile.GeneraterRenderableObjectID();
                     }
                 }
             }
@@ -266,14 +240,14 @@ namespace OC
             }
         }
 
-        public bool Bake(bool bFrame)
+        public bool Bake(bool bFrame, string tempPath)
         {
             foreach (var pair in tileMap)
             {
                 Tile tile = pair.Value;
                 if (tile.TileIndex.Equals(_currentIndex))
                 {
-                    return tile.Bake(bFrame);                   
+                    return tile.Bake(bFrame, tempPath);                   
                 }
             }
 
