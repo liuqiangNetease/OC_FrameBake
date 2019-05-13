@@ -8,7 +8,7 @@ namespace OC
     {
         public static bool IsBatchMode = false;
 
-        public static bool UseComputeShader = false;
+        public static bool UseComputeShader = true;
         public static bool UseVisibleCache = true;
         public static bool SavePerCell = true;
         public static bool ClearOnSave = true;

@@ -179,10 +179,23 @@ namespace OC
             return ret;
         }
 
+        private void MergeCells()
+        {
+            if (Config.mergeCell)
+            {
+                foreach (var volume in volumelList)
+                {
+                    volume.MergeCells();
+                }
+            }
+        }
+
         internal void Finish()
         {
             if (IsFinish)
             {
+                MergeCells();
+
                 Cell.FinishToGetRenderableModels();
 
                 EditorApplication.update -= ComputePVS;
@@ -192,7 +205,7 @@ namespace OC
 
                 EditorUtility.ClearProgressBar();
 
-                if(string.IsNullOrEmpty(tempPath) == false)
+                if (string.IsNullOrEmpty(tempPath) == false)
                 {
                     CopyOCDataTo(tempPath);
                     OC.Editor.OCGenerator.GenerateSceneOCDiffPatch(Name, tempPath);
@@ -214,7 +227,7 @@ namespace OC
             {
                 var volume = volumelList[i];
                 if (!volume.GetRenderableModels(String.Format("Volume {0}/{1} 正在生成PVS数据", i + 1, volumelList.Count),
-                    Progress))
+                    Util.Progress))
                 {
                     //Finish();
                     break;
@@ -246,7 +259,7 @@ namespace OC
             {
                 var volume = volumelList[i];
                 if (!volume.GetRenderableModels(String.Format("Volume {0}/{1} 正在生成PVS数据", i + 1, volumelList.Count),
-                    Progress))
+                    Util.Progress))
                 {
                     Finish();
                     break;
@@ -327,10 +340,7 @@ namespace OC
                 GameObject.DestroyImmediate(camera);
         }
 
-        private bool Progress(string strTitle, string strMessage, float fT)
-        {
-            return EditorUtility.DisplayCancelableProgressBar(strTitle, strMessage, fT);
-        }
+        
 
         private bool ComputeVolumeCells()
         {
@@ -380,7 +390,7 @@ namespace OC
             {
                 var raster = new VolumeCellRaster(new RasterSettings(Config.CellSize, Config.MinPlayAreaHeight, Config.MaxPlayAreaHeight));
                 raster.AddVolume(bounds.min, bounds.max);
-                var cells = raster.ComputeVolumeCells(colliderList, Progress);
+                var cells = raster.ComputeVolumeCells(colliderList, Util.Progress);
                 
                 if (cells != null)
                 {
@@ -672,7 +682,7 @@ namespace OC
             }
             else
             {
-                Progress("生成ObjectId", "获取所有Mesh Render ...", 0.0f);
+                Util.Progress("生成ObjectId", "获取所有Mesh Render ...", 0.0f);
             }            
 
             var meshList = GetSceneMeshes();            
@@ -686,7 +696,7 @@ namespace OC
                 RenderableObj obj = GetRenderableObjectByMeshRenderer(meshtobeMerged);
 
                 if(!Config.IsBatchMode)
-                    Progress("生成ObjectId", String.Format("合并Mesh Render {0}/{1} ...", i + 1, meshList.Count), ((float) i + 1) / meshList.Count);
+                    Util.Progress("生成ObjectId", String.Format("合并Mesh Render {0}/{1} ...", i + 1, meshList.Count), ((float) i + 1) / meshList.Count);
 
                 for (int j = i+1; j < meshList.Count; j++)
                 {
@@ -705,7 +715,7 @@ namespace OC
             }
             else
             {
-                Progress("生成ObjectId", "删除无效对象", 0.0f);
+                Util.Progress("生成ObjectId", "删除无效对象", 0.0f);
             }
 
             renderableSet.RemoveEmptyRenerableObject();;
@@ -769,7 +779,7 @@ namespace OC
             ProcessAndMergeMeshRenders();
 
             ushort maxId = 0;
-            var success = renderableSet.RecalcRenderableObjectGuid(out maxId, Progress);
+            var success = renderableSet.RecalcRenderableObjectGuid(out maxId, Util.Progress);
             if (success)
             {
                 _maxGameObjectIDCount = maxId;
@@ -879,7 +889,7 @@ namespace OC
 
                 for (int i = 0; i < volumelList.Count; ++i)
                 {
-                    if (Progress("保存PVS数据", String.Format("Volume {0}/{1} ...", i + 1, volumelList.Count),
+                    if (Util.Progress("保存PVS数据", String.Format("Volume {0}/{1} ...", i + 1, volumelList.Count),
                         ((float)i + 1) / volumelList.Count))
                     {
                         cancelled = true;

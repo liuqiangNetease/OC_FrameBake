@@ -9,15 +9,18 @@ using System.ComponentModel;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.IO;
-
-#if UNITY_EDITOR
+using UnityEditor;
 using UnityEditor.SceneManagement;
-#endif
+
 
 namespace OC
 {
     public class Util
     {
+        public static bool Progress(string strTitle, string strMessage, float fT)
+        {
+            return EditorUtility.DisplayCancelableProgressBar(strTitle, strMessage, fT);
+        }
         public static bool IsLodMesh(MeshRenderer mesh)
         {
             bool ret = false;
@@ -98,7 +101,7 @@ namespace OC
                 return ret;
             }
 
-            ret = !ContainAnyTransparent(renderer);
+            ret = !ContainAnyTransparentOrCutOff(renderer);
 
             return ret;
         }
@@ -126,18 +129,18 @@ namespace OC
             return ret;
         }
 
-        public static bool ContainAnyTransparent(MeshRenderer mr)
+        public static bool ContainAnyTransparentOrCutOff(Renderer mr)
         {
-            bool bTransparent = false;
+            bool ret = false;
             for (int j = 0; j < mr.sharedMaterials.Length; j++)
             {
                 var mat = mr.sharedMaterials[j];
                 if (mat == null)
                     continue;
 
-                if (mat.shader.renderQueue >= (int)UnityEngine.Rendering.RenderQueue.Transparent)
+                if (mat.shader.renderQueue >= (int)UnityEngine.Rendering.RenderQueue.AlphaTest)
                 {
-                    bTransparent = true;
+                    ret = true;
                     break;
                 }
                 if (mat.HasProperty("_Mode"))
@@ -146,23 +149,19 @@ namespace OC
                     if (mode == 0)
                     {
                         //不透明
-                        bTransparent = false;
+                        ret = false;
                     }
                     else
                     {
-                        bTransparent = true;
+                        ret = true;
                         break;
                     }
-                }
-                /*if(mat.HasProperty("_Cutoff"))
-                {
-                    //float cutOff = mat.GetFloat("_Cutoff");
-                    bTransparent = true;
-                    break;
-                }*/
+                }             
             }
-            return bTransparent;
+            return ret;
         }
+
+
 
         /*public static bool ContainAnyOpaque(MeshRenderer mr)
         {

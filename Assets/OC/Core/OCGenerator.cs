@@ -56,33 +56,39 @@ namespace OC.Editor
 
         public void TestPVS()
         {
-            var config = GetSceneConfig(gameObject.scene.name);
-            if (string.IsNullOrEmpty(config.MapName))
-            {
-                config.IsStreamScene = false;
-                config.SceneAssetPath = GetScenePath();
-                config.SceneNamePattern = gameObject.scene.name;
-            }
+            //var config = GetSceneConfig(gameObject.scene.name);
+            //if (string.IsNullOrEmpty(config.MapName))
+            //{
+            // config.IsStreamScene = false;
+            // config.SceneAssetPath = GetScenePath();
+            //config.SceneNamePattern = gameObject.scene.name;
+            // }
+
+            InitConfig();
+            OCSceneConfig config = new OCSceneConfig();
+            config.IsStreamScene = false;
+            config.SceneAssetPath = GetScenePath();
+            config.SceneNamePattern = gameObject.scene.name;
             var testPVS = new PVSTest(Camera.main, config);
             testPVS.Test(TestCellCount);
         }
 
         public void BakeSingleScene()
         {            
-            var config = GetSceneConfig(gameObject.scene.name);
+            //var config = GetSceneConfig(gameObject.scene.name);
 
-            if (string.IsNullOrEmpty(config.MapName))
-            {
+            //if (string.IsNullOrEmpty(config.MapName))
+            //{
                 InitConfig();
                 _scene = new SingleScene(GetScenePath(), gameObject.scene.name, Index.InValidIndex);
-                _scene.Bake(Config.ComputePerframe, config.TemporaryContainer);
-            }
-            else
-            {
-                ConfigGenerator(config);
-                _scene = new SingleScene(config.GetSceneAssetPath(), config.SceneNamePattern, Index.InValidIndex);
-                _scene.Bake(config.ComputePerframe, config.TemporaryContainer);
-            }
+                _scene.Bake(Config.ComputePerframe, "D;/OCTemp");
+            //}
+            //else
+            //{
+                //ConfigGenerator(config);
+                //_scene = new SingleScene(config.GetSceneAssetPath(), config.SceneNamePattern, Index.InValidIndex);
+                //_scene.Bake(config.ComputePerframe, config.TemporaryContainer);
+            //}
         }
 
         public void BakeStreamScene()

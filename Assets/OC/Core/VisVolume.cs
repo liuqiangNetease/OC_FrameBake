@@ -157,11 +157,30 @@ namespace OC
             return !cancelled;
         }
 
-        public void MergeCells(Cell from, Cell to)
+        public void MergeCells()
         {
+            for (int i = cellList.Count - 1; i >= 0; i--)
+            {
+                var from = cellList[i];
+
+                if (!Config.IsBatchMode)
+                    Util.Progress("生成ObjectId", String.Format("合并cell {0}/{1} ...", i + 1, cellList.Count), ((float)i + 1) / cellList.Count);
+
+                for (int j = i - 1; j >=0; j--)
+                {
+                    var to = cellList[j];
+
+                    if (MergeCell(from, to))
+                        break;
+                }
+            }
+        }
+
+        public bool MergeCell(Cell from, Cell to)
+        {
+            bool suc = false;
             if (Config.mergeCell)
             {
-
                 var intersect = from.visibleModelList.Intersect(to.visibleModelList, new RenderableObjectListEquality()).ToList();
                 //var except = from.visibleModelList.Except(to.visibleModelList, new RenderableObjectListEquality()).ToList();
                 //int exCount = except.Count;
@@ -183,8 +202,11 @@ namespace OC
                     to.AddChild(from);
 
                     cellList.Remove(from);
+
+                    suc = true;
                 }
             }
+            return suc;
         }
 
         public void Save(OCDataWriter writer)

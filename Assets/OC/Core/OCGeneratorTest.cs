@@ -254,6 +254,10 @@ namespace OC.Editor
                     var templateGO = GameObject.Instantiate(template);
                     templateGO.transform.localScale = new Vector3(tileSize / 10, tileSize / 10, tileSize / 10);
                     templateGO.transform.position = new Vector3(i * tileSize, 0, j * tileSize);
+                    var pos = templateGO.transform.position;
+                    float offsetValue = -tileSize * tileDim * 0.5f;
+                    Vector3 offset = new Vector3(offsetValue, 0, offsetValue);
+                    templateGO.transform.position = pos + offset; 
 
                     var coms = templateGO.GetComponentsInChildren<MeshRenderer>();
 

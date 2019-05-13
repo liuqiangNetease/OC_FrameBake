@@ -80,14 +80,14 @@ namespace OC
                 HashSet<RenderableObj> ret = null;
                 if (owner.owner.GetRenderObjList(pos, out ret))
                 {
-                    OCProfiler.Start();
+                    //OCProfiler.Start();
                     foreach (var obj in ret)
                     {
                         bool bContains = visibleModelList.Contains(obj);
                         if (bContains == false)
                             visibleModelList.Add(obj);
                     }
-                    var time = OCProfiler.Stop();
+                    //var time = OCProfiler.Stop();
                     //return new CellVisRenderStat(0, time);
                     return;
                 }

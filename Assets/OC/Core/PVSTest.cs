@@ -205,8 +205,9 @@ namespace OC
                         bool bCancel = EditorUtility.DisplayCancelableProgressBar(title, info, (float)i / finalCellCount);
                         if (bCancel)
                             break;
-                        int ranValue = UnityEngine.Random.Range(0, volume.cellList.Count - 1);
-                        var cell = volume.cellList[ranValue];
+                        //int ranValue = UnityEngine.Random.Range(0, volume.cellList.Count - 1);                        
+                        //var cell = volume.cellList[ranValue];
+                        var cell = volume.cellList[i];
                         MoveCamera(singleScene, tex, cell.aabb.center);
                     }
                 }

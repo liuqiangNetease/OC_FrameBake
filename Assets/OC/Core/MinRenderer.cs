@@ -90,13 +90,14 @@ namespace OC
             }
         }
 
+        private float _oldLodBias;
         private int _oldQualityLevel;
         private ShadowQuality _oldShadowQuality;
 #if UNITY_EDITOR
         private Lightmapping.GIWorkflowMode _oldGiWorkflowMode;
 #endif
 
-        private Dictionary<MeshRenderer, Material[]> _oldTransparentMats = new Dictionary<MeshRenderer, Material[]>();
+        private Dictionary<Renderer, Material[]> _oldTransparentMats = new Dictionary<Renderer, Material[]>();
         private Dictionary<Terrain, TerrainMaterial> _oldTerrainMats = new Dictionary<Terrain, TerrainMaterial>();
         private Dictionary<MeshRenderer, Material[]> _oldRenderMats = new Dictionary<MeshRenderer, Material[]>();
         private Dictionary<int, MeshRenderer> _renderColors = new Dictionary<int, MeshRenderer>();
@@ -140,7 +141,7 @@ namespace OC
             }
         }
 
-        public bool SetTransparentAlpha(MeshRenderer mr)
+        public bool SetTransparentAlpha(Renderer mr)
         {
             bool ret = false;
 
@@ -162,7 +163,9 @@ namespace OC
                     mode = mat.GetFloat("_Mode");
 
                 }
-                if (mat.shader.renderQueue >= (int)UnityEngine.Rendering.RenderQueue.Transparent || mode > 0)
+                //mode == 1    cutOff donot replace material 
+                if (mat.shader.renderQueue >= (int)UnityEngine.Rendering.RenderQueue.Transparent || mode > 1)
+                //if (mode > 1)
                 {
                     Material newMat = new Material(Shader.Find("OC/Alpha Blend"));
                     newMat.color = new Color(1, 1, 1, 0);
@@ -189,6 +192,9 @@ namespace OC
         public void Prepare()
         {
             _shader = null;
+
+            _oldLodBias = QualitySettings.lodBias;
+            QualitySettings.lodBias = 2000;
 
             _oldQualityLevel = QualitySettings.GetQualityLevel();
             var qualityNames = QualitySettings.names;
@@ -237,7 +243,7 @@ namespace OC
                 terrain.drawTreesAndFoliage = false;
             }
 
-            MeshRenderer[] mrs = Object.FindObjectsOfType<MeshRenderer>();
+            Renderer[] mrs = Object.FindObjectsOfType<Renderer>();
             //            Debug.LogFormat("DisableInvisibleRenderers call, find all meshrenderer count:{0} time:{1}", mrs.Length, System.DateTime.Now);
 
             // 查找所有潜在可视集合
@@ -245,15 +251,24 @@ namespace OC
             _oldTransparentMats.Clear();
             for (int i = 0; i < mrs.Length; i++)
             {
-                MeshRenderer mr = mrs[i];
-                if (mr == null || !mr.gameObject.activeSelf || !mr.enabled || mr.sharedMaterials.Length <= 0) continue;
+                Renderer mr = mrs[i];
+                if (mr == null || !mr.gameObject.activeSelf || !mr.enabled || mr.sharedMaterials.Length <= 0)
+                    continue;
+
+
+                if (SetTransparentAlpha(mr))
+                    continue;
+
+                //cutoff 
+                if (Util.ContainAnyTransparentOrCutOff(mr))
+                    continue;
 
                 MeshFilter mf = mr.GetComponent<MeshFilter>();
-                if (mf == null || mf.sharedMesh == null) continue;
+                if (mf == null || mf.sharedMesh == null)
+                    continue;
 
-                //if (!Util.TryIgnoreTransparent(mr))
-                if (SetTransparentAlpha(mr) == false)
-                    _visibleSet.Add(mr);
+                var meshRenderer = mr as MeshRenderer;
+                _visibleSet.Add(meshRenderer);
             }
 
             //            Debug.LogFormat("DisableInvisibleRenderers call, find potential meshrenderer count:{0} time:{1}", visibleSet.Count, System.DateTime.Now);
@@ -347,8 +362,8 @@ namespace OC
             _newTarget.DiscardContents();
 
             cam.targetTexture = _newTarget;
-            //cam.fieldOfView = 90.0f;
-            //cam.aspect = 1.0f;
+            cam.fieldOfView = 90.0f;
+            cam.aspect = 1.0f;
             //cam.nearClipPlane = Config.CameraNearClip;
             //cam.farClipPlane = Config.CameraFarClip;
             //cam.cullingMask &= ~UnityLayerManager.GetLayerMask(EUnityLayerName.UI);
@@ -371,16 +386,18 @@ namespace OC
                     _computeIndexBuffer.Dispose();
                 }
 
+                if (_computeIndexLengthBuffer != null)
+                    _computeIndexLengthBuffer.Dispose();
+
 
                 if (maxKey < 0) maxKey = 0;
                 maxKey += 1;
                 Debug.LogFormat("MinRenderer Max Key {0}", maxKey);
                 _computeBuffer = new ComputeBuffer(maxKey, sizeof(int));
-                _computeIndexBuffer = new ComputeBuffer(maxKey, sizeof(int));
-                if (_computeIndexLengthBuffer == null)
-                    _computeIndexLengthBuffer = new ComputeBuffer(1, sizeof(int));
+                _computeIndexBuffer = new ComputeBuffer(maxKey, sizeof(int));              
+                _computeIndexLengthBuffer = new ComputeBuffer(1, sizeof(int));
                 _computeLengthData = new int[1];
-                _computeIndexData = new int[0];
+                _computeIndexData = new int[maxKey];
 
                 var computeShader = _computeShader;
                 var prepareKernal = computeShader.FindKernel("OCVisPrepare");
@@ -434,17 +451,15 @@ namespace OC
                 _computeShader.Dispatch(computeKernal, _textureWidth, _textureHeight, 1);               
                 
                 _computeIndexLengthBuffer.GetData(_computeLengthData);
-                var length = _computeLengthData[0];
-                //if (length > _computeIndexData.Length)
-                //{
-                //_computeIndexData = new int[length];                  
-                //}
-                _computeIndexData = new int[length];
+                var length = _computeLengthData[0];     
 
                 if (length > 0)
                 {
                     //OCProfiler.Start();
-                    _computeIndexBuffer.GetData(_computeIndexData);
+
+                    //_computeIndexData = new int[length];
+                    _computeIndexBuffer.GetData(_computeIndexData, length);
+                    
                     //var visComputeGetData = OCProfiler.Stop();
                     //Debug.LogFormat("Vis Compute Get Data Time is {0}", visComputeGetData);
                     //OCProfiler.Start();
@@ -550,6 +565,8 @@ namespace OC
             RestoreTransparentAlpha();
             QualitySettings.SetQualityLevel(_oldQualityLevel);
             QualitySettings.shadows = _oldShadowQuality;
+
+            QualitySettings.lodBias = _oldLodBias;
 #if UNITY_EDITOR
             Lightmapping.giWorkflowMode = _oldGiWorkflowMode;
 #endif
@@ -599,10 +616,14 @@ namespace OC
             _oldTarget = null;
             _oldActive = null;
 
-            if (_computeBuffer != null)
-            {
+            if (_computeBuffer != null)            
                 _computeBuffer.Dispose();
-            }
+          
+            if (_computeIndexBuffer != null)
+                _computeIndexBuffer.Dispose();
+
+            if (_computeIndexLengthBuffer != null)
+                _computeIndexLengthBuffer.Dispose();
 
             // Debug.LogFormat("MiniRenderer Finish Sreen Width {0} Height {1} Aspect {2}", Screen.width, Screen.height, _oldAspect);
         }
