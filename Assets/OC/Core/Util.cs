@@ -156,7 +156,16 @@ namespace OC
                         ret = true;
                         break;
                     }
-                }             
+                }
+                //if( mat.shader.name == "Nature/SpeedTree3" 
+                //|| mat.shader.name == "Nature/SpeedTree"
+                //|| mat.shader.name == "Nature/SpeedTree2"
+                //)
+                if (mat.HasProperty("_Cutoff") && mat.HasProperty("_Mode") == false)
+                {
+                    ret = true;
+                    break;
+                }
             }
             return ret;
         }

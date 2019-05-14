@@ -7,7 +7,7 @@ namespace OC
 {
     public class ColorN
     {
-        private int _alpha = 1;
+        private int _alpha = 254;
         public int Alpha
         {
             get { return _alpha; }

@@ -1069,7 +1069,8 @@ namespace OC
                 {
                     var guid = coms[i].GUID;
 
-                    renderableSet.Add(guid, coms[i].gameObject.GetComponent<MeshRenderer>());
+                    if(guid >= 0)
+                        renderableSet.Add(guid, coms[i].gameObject.GetComponent<MeshRenderer>());
                 }
             }
            

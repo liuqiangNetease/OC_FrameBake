@@ -106,6 +106,7 @@ namespace OC
             RotateCameraDir(Vector3.right, cacheList);
 #else
 
+
             RotateCameraDir(new Vector3(1 ,1 ,1), cacheList);
             RotateCameraDir(new Vector3(1, 1, -1), cacheList);
             RotateCameraDir(new Vector3(1, -1, 1), cacheList);

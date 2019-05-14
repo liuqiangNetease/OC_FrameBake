@@ -76,19 +76,7 @@ namespace OC
         private ColorN _colorN = new ColorN();
 
 
-        private struct TerrainMaterial
-        {
-            public Terrain.MaterialType MatType;
-            public Material Mat;
-            public bool DetailDraw;
-
-            public TerrainMaterial(Terrain.MaterialType matType, Material mat, bool detailDraw)
-            {
-                MatType = matType;
-                Mat = mat;
-                DetailDraw = detailDraw;
-            }
-        }
+        
 
         private float _oldLodBias;
         private int _oldQualityLevel;
@@ -98,7 +86,7 @@ namespace OC
 #endif
 
         private Dictionary<Renderer, Material[]> _oldTransparentMats = new Dictionary<Renderer, Material[]>();
-        private Dictionary<Terrain, TerrainMaterial> _oldTerrainMats = new Dictionary<Terrain, TerrainMaterial>();
+        private Dictionary<Terrain, bool> _oldTerrainsDraw = new Dictionary<Terrain, bool>();
         private Dictionary<MeshRenderer, Material[]> _oldRenderMats = new Dictionary<MeshRenderer, Material[]>();
         private Dictionary<int, MeshRenderer> _renderColors = new Dictionary<int, MeshRenderer>();
         private List<MeshRenderer> _visibleSet = new List<MeshRenderer>();
@@ -209,38 +197,19 @@ namespace OC
             _oldShadowQuality = QualitySettings.shadows;
             QualitySettings.shadows = ShadowQuality.Disable;
 
-#if UNITY_EDITOR
+
             _oldGiWorkflowMode = Lightmapping.giWorkflowMode;
             Lightmapping.giWorkflowMode = Lightmapping.GIWorkflowMode.Legacy;
-#endif
-
-            //clear light probes
-            if (Config.ClearLightProbes)
-            {
-                var probes = Object.FindObjectsOfType<ReflectionProbe>();
-                foreach (var probe in probes)
-                {
-                    Object.DestroyImmediate(probe);
-                }
-
-                var lights = Object.FindObjectsOfType<Light>();
-                foreach (var light in lights)
-                {
-                    Object.DestroyImmediate(light);
-                }
-            }
 
             //set terrain materials
-            _oldTerrainMats.Clear();
-            Terrain[] terrains = Object.FindObjectsOfType<Terrain>();
-            var terrainMaterial = new Material(shader);
-            terrainMaterial.SetColor("_Color", new Color(1.0f, 1.0f, 1.0f));
+            _oldTerrainsDraw.Clear();
+            Terrain[] terrains = Object.FindObjectsOfType<Terrain>();           
             foreach (var terrain in terrains)
             {
-                _oldTerrainMats.Add(terrain, new TerrainMaterial(terrain.materialType, terrain.materialTemplate, terrain.drawTreesAndFoliage));
-                terrain.materialType = Terrain.MaterialType.Custom;
-                terrain.materialTemplate = terrainMaterial;
+                _oldTerrainsDraw.Add(terrain, terrain.drawTreesAndFoliage);              
                 terrain.drawTreesAndFoliage = false;
+                terrain.enabled = false;
+                terrain.enabled = true;
             }
 
             Renderer[] mrs = Object.FindObjectsOfType<Renderer>();
@@ -591,13 +560,11 @@ namespace OC
                 }
             }
 
-            foreach (var terrainMatPair in _oldTerrainMats)
+            foreach (var terrainMatPair in _oldTerrainsDraw)
             {
                 var terrain = terrainMatPair.Key;
-                var terrainMat = terrainMatPair.Value;
-                terrain.materialType = terrainMat.MatType;
-                terrain.materialTemplate = terrainMat.Mat;
-                terrain.drawTreesAndFoliage = terrainMat.DetailDraw;
+                bool draw = terrainMatPair.Value;
+                terrain.drawTreesAndFoliage = draw;
             }
 
             cam.targetTexture = _oldTarget;
