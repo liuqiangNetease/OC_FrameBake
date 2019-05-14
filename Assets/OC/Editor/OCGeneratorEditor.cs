@@ -38,7 +38,6 @@ namespace OC.Editor
         private SerializedProperty PropCustomVolumeSize;
 
 
-        private SerializedProperty PropTestCellCount;
 
         private SerializedProperty PropCellSize;
 
@@ -69,8 +68,7 @@ namespace OC.Editor
             PropClearOnSave = serializedObject.FindProperty("ClearOnSave");
             PropComputePerframe = serializedObject.FindProperty("ComputePerframe");
             PropPerframeExecCount = serializedObject.FindProperty("PerframeExecCount");
-            PropTestCellCount = serializedObject.FindProperty("TestCellCount");
-
+          
             PropScreenWidth = serializedObject.FindProperty("ScreenWidth");
             PropScreenHeight = serializedObject.FindProperty("ScreenHeight");
 
@@ -145,11 +143,7 @@ namespace OC.Editor
                     "Clear pvs data when data is saved."),
                 PropClearOnSave.boolValue);
 
-            PropTestCellCount.intValue = EditorGUILayout.IntField(
-                    new GUIContent("Test Cell Count",
-                        "Random test cell count"),
-                    PropTestCellCount.intValue);
-
+         
             PropScreenWidth.intValue = EditorGUILayout.IntField(
                     new GUIContent("Screen Width",
                         "bake screen width"),

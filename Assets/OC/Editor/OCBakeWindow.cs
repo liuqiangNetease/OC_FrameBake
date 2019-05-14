@@ -126,7 +126,7 @@ namespace OC.Editor
             {
                 OCSceneConfig config = OCGenerator.GetSceneConfig(sceneName);
                 PVSTest test = new PVSTest(Camera.main, config);
-                test.Test(-1);
+                test.Test();
             }
 
             if (GUILayout.Button("LoadAllOCData"))

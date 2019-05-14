@@ -97,12 +97,24 @@ namespace OC
 
             Camera.main.transform.position = pos;
             //6 dir look and render 
+#if false
             RotateCameraDir(Vector3.forward, cacheList);
             RotateCameraDir(Vector3.back, cacheList);
             RotateCameraDir(Vector3.up, cacheList);
             RotateCameraDir(Vector3.down, cacheList);
             RotateCameraDir(Vector3.left, cacheList);
             RotateCameraDir(Vector3.right, cacheList);
+#else
+
+            RotateCameraDir(new Vector3(1 ,1 ,1), cacheList);
+            RotateCameraDir(new Vector3(1, 1, -1), cacheList);
+            RotateCameraDir(new Vector3(1, -1, 1), cacheList);
+            RotateCameraDir(new Vector3(1, -1, -1), cacheList);
+            RotateCameraDir(new Vector3(-1, 1, -1), cacheList);
+            RotateCameraDir(new Vector3(-1, 1, 1), cacheList);
+            RotateCameraDir(new Vector3(-1, -1, 1), cacheList);
+            RotateCameraDir(new Vector3(-1, -1, -1), cacheList);
+#endif
 
             if (bCache)
                 owner.owner.AddCacheCellPosition(pos, cacheList);
@@ -271,7 +283,7 @@ namespace OC
         }
 #endif
 
-        public void AddChild(Cell child)
+            public void AddChild(Cell child)
         {
             child.visibleModelList.Clear();
             child.parent = this;
@@ -380,6 +392,11 @@ namespace OC
                             //go.SetVisible(visFlags[i]);
                             owner.owner.AddDisabledRenderableObj(go);
                         }
+                    }
+                    else
+                    {
+                        if(i < owner.owner.renderableSet.Count)
+                            Debug.Log("not find Renderobj!" );
                     }
                 }
             }

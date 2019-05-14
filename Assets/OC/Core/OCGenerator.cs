@@ -70,7 +70,7 @@ namespace OC.Editor
             config.SceneAssetPath = GetScenePath();
             config.SceneNamePattern = gameObject.scene.name;
             var testPVS = new PVSTest(Camera.main, config);
-            testPVS.Test(TestCellCount);
+            testPVS.Test();
         }
 
         public void BakeSingleScene()

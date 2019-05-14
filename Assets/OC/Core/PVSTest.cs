@@ -30,10 +30,10 @@ namespace OC
             this.config = config;
         }
 
-        public void Test(int countCell)
+        public void Test()
         {
             Prepare();
-            Do(countCell);
+            Do();
             Finish();
         }
         public void Prepare()
@@ -114,7 +114,7 @@ namespace OC
             }
         }
 
-        public void Do(int TestCellCount)
+        public void Do()
         {
            
            
@@ -174,16 +174,15 @@ namespace OC
                         string info = "";
                         var volume = scene.volumelList[v];
 
-                        int finalCellCount = TestCellCount > 0 ? TestCellCount : volume.cellList.Count;
+                        int finalCellCount = volume.cellList.Count;
 
                         for (int i = 0; i < finalCellCount; i++)
                         {
                             info = "cell " + i + "/" + finalCellCount;
                             bool bCancel = EditorUtility.DisplayCancelableProgressBar(title, info, (float)i / finalCellCount);
                             if (bCancel)
-                                break;
-                            int ranValue = UnityEngine.Random.Range(0, volume.cellList.Count - 1);
-                            var cell = volume.cellList[ranValue];
+                                break;                           
+                            var cell = volume.cellList[i];
                             MoveCamera(scene, tex, cell.aabb.center);
                         }
                     }
@@ -197,16 +196,14 @@ namespace OC
                     string info = "";
                     var volume = singleScene.volumelList[v];
 
-                    int finalCellCount = TestCellCount > 0 ? TestCellCount : volume.cellList.Count;
+                    int finalCellCount = volume.cellList.Count;
                   
                     for (int i = 0; i < finalCellCount; i++)
                     {
                         info = "cell " + i + "/" + finalCellCount;
                         bool bCancel = EditorUtility.DisplayCancelableProgressBar(title, info, (float)i / finalCellCount);
                         if (bCancel)
-                            break;
-                        //int ranValue = UnityEngine.Random.Range(0, volume.cellList.Count - 1);                        
-                        //var cell = volume.cellList[ranValue];
+                            break;                 
                         var cell = volume.cellList[i];
                         MoveCamera(singleScene, tex, cell.aabb.center);
                     }

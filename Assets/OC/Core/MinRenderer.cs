@@ -194,7 +194,7 @@ namespace OC
             _shader = null;
 
             _oldLodBias = QualitySettings.lodBias;
-            QualitySettings.lodBias = 2000;
+            //QualitySettings.lodBias = 2000;
 
             _oldQualityLevel = QualitySettings.GetQualityLevel();
             var qualityNames = QualitySettings.names;
@@ -362,8 +362,8 @@ namespace OC
             _newTarget.DiscardContents();
 
             cam.targetTexture = _newTarget;
-            cam.fieldOfView = 90.0f;
-            cam.aspect = 1.0f;
+            //cam.fieldOfView = 90.0f;
+            //cam.aspect = 1.0f;
             //cam.nearClipPlane = Config.CameraNearClip;
             //cam.farClipPlane = Config.CameraFarClip;
             //cam.cullingMask &= ~UnityLayerManager.GetLayerMask(EUnityLayerName.UI);
