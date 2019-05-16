@@ -95,11 +95,8 @@ namespace OC
         {
             foreach (var meshRenderer in _rendererList)
             {
-                meshRenderer.enabled = bVis;
-//                if (!bVis)
-//                {
-//                    Debug.LogFormat("Disable Renderer {0}", meshRenderer.name);
-//                }
+                //meshRenderer.enabled = bVis;
+                meshRenderer.gameObject.SetActive(bVis);
             }
         }
        

@@ -55,7 +55,7 @@ namespace OC.Stream
         {
             try
             {
-                OCProfiler.Start();
+                //OCProfiler.Start();
                 if (mode == StreamMode.Compress)
                     return Compress(data);
                 else
@@ -63,15 +63,15 @@ namespace OC.Stream
             }
             finally
             {
-                var elasped = (int) OCProfiler.Stop();
+                //var elasped = (int) OCProfiler.Stop();
 
                 if (mode == StreamMode.Compress)
                 {
-                    _stats.CompressTime += elasped;
+                    //_stats.CompressTime += elasped;
                 }
                 else
                 {
-                    _stats.DecompressTime += elasped;
+                    //_stats.DecompressTime += elasped;
                 }
             }
         }

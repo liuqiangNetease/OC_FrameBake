@@ -11,16 +11,8 @@ namespace OC
         public MeshRenderer renderer;
         public List<Triangle> triangles;
     }
-    public class SoftRenderer
+    public class SoftRenderer: IRenderer
     {
-#region [ Static ]
-        private static readonly SoftRenderer _instance = new SoftRenderer();
-
-        public static SoftRenderer Instance
-        {
-            get { return _instance; }
-        }
-#endregion
         struct TagZBuffer
         {
             public float zValue; // 1/z 
@@ -225,7 +217,7 @@ namespace OC
                 }
         }
 
-        public HashSet<MeshRenderer> GetVisibleModels(List<MeshRenderer> filterMeshRenderers)
+        public HashSet<MeshRenderer> Do(List<MeshRenderer> filterMeshRenderers = null)
         {
             ClearBuff();
 

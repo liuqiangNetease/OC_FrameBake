@@ -13,7 +13,7 @@ namespace OC
             get { return _alpha; }
         }
 
-        private int _offset = 10;
+        private int _offset = 50;
         public int Offset
         {
             get { return _offset; }

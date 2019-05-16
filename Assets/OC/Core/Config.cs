@@ -36,6 +36,14 @@ namespace OC
         public static bool SoftRenderer = false;
 
         public static readonly string OCPatchFileSuffix = "_oc_patch.txt";
+
+        public static bool ChangeLODBias = false;
+
+        public static bool ChangeCameraFOV = false;
+
+        public static bool Use8DirLook = true;
+
+        public static bool NewGetData = false;
     }
 }
 

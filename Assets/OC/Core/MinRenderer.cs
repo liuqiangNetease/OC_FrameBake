@@ -10,29 +10,18 @@ using UnityEngine;
 
 namespace OC
 {
-
-    public class MinRenderer
+    public class MinRenderer: IRenderer
     {
-#region [ Static ]
-        private static readonly MinRenderer _instance = new MinRenderer();
-
-        public static MinRenderer Instance
-        {
-            get { return _instance; }
-        }
-#endregion
-
         public MinRenderer()
         {
-#if UNITY_EDITOR
+            _shader = null;
+
             _computeShader = AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/Assets/ArtPlugins/OC/OCVisCompute.compute");
             if (_computeShader == null)
             {
                 _computeShader = AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/ArtPluginOut/OC/OCVisCompute.compute");
             }
-#endif
         }
-
 
         /// <summary>
         /// 记录渲染场景的相机
@@ -74,19 +63,29 @@ namespace OC
         private ComputeShader _computeShader;
 
         private ColorN _colorN = new ColorN();
-
-
-        
-
-        private float _oldLodBias;
+     
         private int _oldQualityLevel;
         private ShadowQuality _oldShadowQuality;
-#if UNITY_EDITOR
-        private Lightmapping.GIWorkflowMode _oldGiWorkflowMode;
-#endif
 
+        private float _oldLodBias;
+
+        private Lightmapping.GIWorkflowMode _oldGiWorkflowMode;
+
+        private struct TerrainMaterial
+        {
+            public Terrain.MaterialType MatType;
+            public Material Mat;
+            public bool DetailDraw;
+
+            public TerrainMaterial(Terrain.MaterialType matType, Material mat, bool detailDraw)
+            {
+                MatType = matType;
+                Mat = mat;
+                DetailDraw = detailDraw;
+            }
+        }
         private Dictionary<Renderer, Material[]> _oldTransparentMats = new Dictionary<Renderer, Material[]>();
-        private Dictionary<Terrain, bool> _oldTerrainsDraw = new Dictionary<Terrain, bool>();
+        private Dictionary<Terrain, TerrainMaterial> _oldTerrainMats = new Dictionary<Terrain, TerrainMaterial>();
         private Dictionary<MeshRenderer, Material[]> _oldRenderMats = new Dictionary<MeshRenderer, Material[]>();
         private Dictionary<int, MeshRenderer> _renderColors = new Dictionary<int, MeshRenderer>();
         private List<MeshRenderer> _visibleSet = new List<MeshRenderer>();
@@ -113,12 +112,7 @@ namespace OC
         private ComputeBuffer _computeIndexLengthBuffer;
         private int[] _computeLengthData;
         private int[] _computeIndexData;
-
-        public RenderTexture GetTargetTexture()
-        {
-            return _newTarget;
-        }
-
+     
         public void RestoreTransparentAlpha()
         {
             foreach (var tranMat in _oldTransparentMats)
@@ -179,10 +173,10 @@ namespace OC
         private static readonly string LowLevelName = "Very Low";
         public void Prepare()
         {
-            _shader = null;
-
             _oldLodBias = QualitySettings.lodBias;
-            //QualitySettings.lodBias = 2000;
+
+            if(Config.ChangeLODBias)
+                QualitySettings.lodBias = 20000;
 
             _oldQualityLevel = QualitySettings.GetQualityLevel();
             var qualityNames = QualitySettings.names;
@@ -199,17 +193,19 @@ namespace OC
 
 
             _oldGiWorkflowMode = Lightmapping.giWorkflowMode;
-            Lightmapping.giWorkflowMode = Lightmapping.GIWorkflowMode.Legacy;
+            //Lightmapping.giWorkflowMode = Lightmapping.GIWorkflowMode.Legacy;
 
             //set terrain materials
-            _oldTerrainsDraw.Clear();
-            Terrain[] terrains = Object.FindObjectsOfType<Terrain>();           
+            _oldTerrainMats.Clear();
+            Terrain[] terrains = Object.FindObjectsOfType<Terrain>();
+            var terrainMaterial = new Material(shader);
+            terrainMaterial.SetColor("_Color", new Color(1.0f, 1.0f, 1.0f));
             foreach (var terrain in terrains)
             {
-                _oldTerrainsDraw.Add(terrain, terrain.drawTreesAndFoliage);              
+                _oldTerrainMats.Add(terrain, new TerrainMaterial(terrain.materialType, terrain.materialTemplate, terrain.drawTreesAndFoliage));
+                //terrain.materialType = Terrain.MaterialType.Custom;
+                //terrain.materialTemplate = terrainMaterial;
                 terrain.drawTreesAndFoliage = false;
-                terrain.enabled = false;
-                terrain.enabled = true;
             }
 
             Renderer[] mrs = Object.FindObjectsOfType<Renderer>();
@@ -331,10 +327,15 @@ namespace OC
             _newTarget.DiscardContents();
 
             cam.targetTexture = _newTarget;
-            //cam.fieldOfView = 90.0f;
-            //cam.aspect = 1.0f;
-            //cam.nearClipPlane = Config.CameraNearClip;
-            //cam.farClipPlane = Config.CameraFarClip;
+
+            if(Config.ChangeCameraFOV)
+            {
+                cam.fieldOfView = 90.0f;
+                cam.aspect = 1.0f;
+                cam.nearClipPlane = 0.01f;
+                cam.farClipPlane = 3000;
+            }
+
             //cam.cullingMask &= ~UnityLayerManager.GetLayerMask(EUnityLayerName.UI);
             cam.clearFlags = CameraClearFlags.Color;
             cam.backgroundColor = Color.white;
@@ -389,7 +390,7 @@ namespace OC
         }
 
         private HashSet<MeshRenderer> _visibleRenders = new HashSet<MeshRenderer>();
-        public HashSet<MeshRenderer> GetVisibleModels()
+        public HashSet<MeshRenderer> Do(List<MeshRenderer> renderers = null)
         {
             if (Config.UseComputeShader)
             {
@@ -425,9 +426,13 @@ namespace OC
                 if (length > 0)
                 {
                     //OCProfiler.Start();
-
-                    //_computeIndexData = new int[length];
-                    _computeIndexBuffer.GetData(_computeIndexData, length);
+                    if(Config.NewGetData == false)
+                    {
+                        _computeIndexData = new int[length];
+                        _computeIndexBuffer.GetData(_computeIndexData);
+                    }
+                    else
+                        _computeIndexBuffer.GetData(_computeIndexData, length);
                     
                     //var visComputeGetData = OCProfiler.Stop();
                     //Debug.LogFormat("Vis Compute Get Data Time is {0}", visComputeGetData);
@@ -531,14 +536,12 @@ namespace OC
 
         public void Finish()
         {
+            QualitySettings.lodBias = _oldLodBias;
             RestoreTransparentAlpha();
             QualitySettings.SetQualityLevel(_oldQualityLevel);
             QualitySettings.shadows = _oldShadowQuality;
 
-            QualitySettings.lodBias = _oldLodBias;
-#if UNITY_EDITOR
             Lightmapping.giWorkflowMode = _oldGiWorkflowMode;
-#endif
 
             // 恢复相机上可能的后效组件
             foreach (var pair in _cameraComps)
@@ -560,11 +563,13 @@ namespace OC
                 }
             }
 
-            foreach (var terrainMatPair in _oldTerrainsDraw)
+            foreach (var terrainMatPair in _oldTerrainMats)
             {
                 var terrain = terrainMatPair.Key;
-                bool draw = terrainMatPair.Value;
-                terrain.drawTreesAndFoliage = draw;
+                var terrainMat = terrainMatPair.Value;
+                terrain.materialType = terrainMat.MatType;
+                terrain.materialTemplate = terrainMat.Mat;
+                terrain.drawTreesAndFoliage = terrainMat.DetailDraw;
             }
 
             cam.targetTexture = _oldTarget;
@@ -593,8 +598,7 @@ namespace OC
                 _computeIndexLengthBuffer.Dispose();
 
             // Debug.LogFormat("MiniRenderer Finish Sreen Width {0} Height {1} Aspect {2}", Screen.width, Screen.height, _oldAspect);
-        }
-
+        }      
     }
 
 }

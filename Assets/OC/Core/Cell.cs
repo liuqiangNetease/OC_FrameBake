@@ -32,37 +32,19 @@ namespace OC
         public HashSet<RenderableObj> visibleModelList = new HashSet<RenderableObj>();
 
 #if UNITY_EDITOR
-        
-
-      
-        public static void PrepareToGetRenderableModels()
-        {
-            if (Config.SoftRenderer)
-                SoftRenderer.Instance.Prepare();
-            else
-                MinRenderer.Instance.Prepare();
-        }
-
-        public static void FinishToGetRenderableModels()
-        {
-            if (Config.SoftRenderer)
-                SoftRenderer.Instance.Finish();
-            else
-                MinRenderer.Instance.Finish();
-        }
-
+     
         public void GetRenderableModels()
         {
             //OCProfiler.Start();
-            MoveCameraPosition(aabb.min);//1(0,0,0)
-            MoveCameraPosition(aabb.max);//8(1,1,1)
+            //MoveCameraPosition(aabb.min);//1(0,0,0)
+            //MoveCameraPosition(aabb.max);//8(1,1,1)
             MoveCameraPosition(aabb.center);//9
-            MoveCameraPosition(new Vector3(aabb.max.x, aabb.min.y, aabb.min.z));//2 (1,0,0)
-            MoveCameraPosition(new Vector3(aabb.min.x, aabb.max.y, aabb.min.z));//5 (0,1,0)
-            MoveCameraPosition(new Vector3(aabb.min.x, aabb.min.y, aabb.max.z));//4  (0,0,1)
-            MoveCameraPosition(new Vector3(aabb.max.x, aabb.min.y, aabb.max.z));//3  (1,0,1)
-            MoveCameraPosition(new Vector3(aabb.min.x, aabb.max.y, aabb.max.z));//6  (0,1,1)
-            MoveCameraPosition(new Vector3(aabb.max.x, aabb.max.y, aabb.min.z));//7  (1,1,0)
+            //MoveCameraPosition(new Vector3(aabb.max.x, aabb.min.y, aabb.min.z));//2 (1,0,0)
+            //MoveCameraPosition(new Vector3(aabb.min.x, aabb.max.y, aabb.min.z));//5 (0,1,0)
+            //MoveCameraPosition(new Vector3(aabb.min.x, aabb.min.y, aabb.max.z));//4  (0,0,1)
+            //MoveCameraPosition(new Vector3(aabb.max.x, aabb.min.y, aabb.max.z));//3  (1,0,1)
+            //MoveCameraPosition(new Vector3(aabb.min.x, aabb.max.y, aabb.max.z));//6  (0,1,1)
+            //MoveCameraPosition(new Vector3(aabb.max.x, aabb.max.y, aabb.min.z));//7  (1,1,0)
             //var renderTime = OCProfiler.Stop();
 
             //var stat = stat0.Add(stat1).Add(stat2).Add(stat3).Add(stat4).Add(stat5).Add(stat6).Add(stat7).Add(stat8);
@@ -97,25 +79,36 @@ namespace OC
 
             Camera.main.transform.position = pos;
             //6 dir look and render 
-#if false
-            RotateCameraDir(Vector3.forward, cacheList);
-            RotateCameraDir(Vector3.back, cacheList);
-            RotateCameraDir(Vector3.up, cacheList);
-            RotateCameraDir(Vector3.down, cacheList);
-            RotateCameraDir(Vector3.left, cacheList);
-            RotateCameraDir(Vector3.right, cacheList);
-#else
 
+            if(Config.Use8DirLook == false)
+            {
+                RotateCameraDir(Vector3.forward, cacheList);
+                RotateCameraDir(Vector3.back, cacheList);
+                RotateCameraDir(Vector3.up, cacheList);
+                RotateCameraDir(Vector3.down, cacheList);
+                RotateCameraDir(Vector3.left, cacheList);
+                RotateCameraDir(Vector3.right, cacheList);
+            }
+           
+            else
+            {
+                RotateCameraDir(Vector3.forward, cacheList);
+                RotateCameraDir(Vector3.back, cacheList);
+                RotateCameraDir(Vector3.up, cacheList);
+                RotateCameraDir(Vector3.down, cacheList);
+                RotateCameraDir(Vector3.left, cacheList);
+                RotateCameraDir(Vector3.right, cacheList);
 
-            RotateCameraDir(new Vector3(1 ,1 ,1), cacheList);
-            RotateCameraDir(new Vector3(1, 1, -1), cacheList);
-            RotateCameraDir(new Vector3(1, -1, 1), cacheList);
-            RotateCameraDir(new Vector3(1, -1, -1), cacheList);
-            RotateCameraDir(new Vector3(-1, 1, -1), cacheList);
-            RotateCameraDir(new Vector3(-1, 1, 1), cacheList);
-            RotateCameraDir(new Vector3(-1, -1, 1), cacheList);
-            RotateCameraDir(new Vector3(-1, -1, -1), cacheList);
-#endif
+                RotateCameraDir(new Vector3(1, 1, 1), cacheList);
+                RotateCameraDir(new Vector3(1, 1, -1), cacheList);
+                RotateCameraDir(new Vector3(1, -1, 1), cacheList);
+                RotateCameraDir(new Vector3(1, -1, -1), cacheList);
+                RotateCameraDir(new Vector3(-1, 1, -1), cacheList);
+                RotateCameraDir(new Vector3(-1, 1, 1), cacheList);
+                RotateCameraDir(new Vector3(-1, -1, 1), cacheList);
+                RotateCameraDir(new Vector3(-1, -1, -1), cacheList);
+            }
+            
 
             if (bCache)
                 owner.owner.AddCacheCellPosition(pos, cacheList);
@@ -127,7 +120,7 @@ namespace OC
         {
             Camera.main.transform.forward = forward;
 
-            OCProfiler.Start();
+            //OCProfiler.Start();
 
             HashSet<MeshRenderer> visList = null;
 
@@ -136,22 +129,21 @@ namespace OC
                 if (owner.owner.Owner == null)
                 {
                     var renders = owner.owner.treeMesh.GetWithinFrustum(Camera.main);
-                    Debug.Log("renders:" + renders.Count);
-                    visList = SoftRenderer.Instance.GetVisibleModels(renders);
+                    visList = owner.owner.renderer.Do(renders);
                 }
                 else
                 {
                     var renders = owner.owner.Owner.treeMesh.GetWithinFrustum(Camera.main);
-                    visList = SoftRenderer.Instance.GetVisibleModels(renders);
+                    visList = owner.owner.renderer.Do(renders);
                 }
             }
             else
             {
-                visList = MinRenderer.Instance.GetVisibleModels();
+                visList = owner.owner.renderer.Do();
             }
-            var calcVisTime = OCProfiler.Stop();
+            //var calcVisTime = OCProfiler.Stop();
 
-            OCProfiler.Start();
+            //OCProfiler.Start();
             foreach (var mr in visList)
             {
                 RenderableObj renderObj = null;
@@ -176,7 +168,7 @@ namespace OC
                     ret.Add(renderObj);
             }
 
-            var updateVisTime = OCProfiler.Stop();
+            //var updateVisTime = OCProfiler.Stop();
         }
 
         public void Clear()

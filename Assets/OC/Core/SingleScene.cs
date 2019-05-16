@@ -40,6 +40,8 @@ namespace OC
         public string tempPath;
         private int curMultiTagID = 0;
         GameObject camera;
+
+        public IRenderer renderer;
 #endif
 
         public int GetNeighborSceneMaxObjectId(Index index)
@@ -75,6 +77,11 @@ namespace OC
             IsPrepared = false;
             IsFinish = false;
             curBakeVolume = 0;
+            renderer = null;
+            if (Config.SoftRenderer )
+                renderer = new SoftRenderer();
+            else
+                renderer = new MinRenderer();
 #endif
 
             tree = null;
@@ -173,7 +180,8 @@ namespace OC
                 {
                     return false;
                 }
-                Cell.PrepareToGetRenderableModels();
+
+                renderer.Prepare();
 
             }
             return ret;
@@ -191,14 +199,18 @@ namespace OC
         }
 
         internal void Finish()
-        {
+        {            
             if (IsFinish)
             {
+                var time = OCProfiler.Stop();
+                Debug.Log(time);
+
                 MergeCells();
 
-                Cell.FinishToGetRenderableModels();
+                renderer.Finish();
 
                 EditorApplication.update -= ComputePVS;
+
                 RestoreCamera();
 
                 SaveData();
@@ -208,7 +220,8 @@ namespace OC
                 if (string.IsNullOrEmpty(tempPath) == false)
                 {
                     CopyOCDataTo(tempPath);
-                    OC.Editor.OCGenerator.GenerateSceneOCDiffPatch(Name, tempPath);
+                    //OC.Editor.OCGenerator.GenerateSceneOCDiffPatch(Name, tempPath);
+                    OC.Editor.OCGenerator.SaveDiffFile(Name, tempPath);
                 }
             }
         }
@@ -247,6 +260,7 @@ namespace OC
 
         private void ComputePVS()
         {
+            OCProfiler.Start();
             if (curBakeVolume >= volumelList.Count || IsFinish)
             {
                 IsFinish = true;
@@ -273,6 +287,7 @@ namespace OC
                 Finish();
                 return;
             }
+           
         }
 
         public override bool Bake(bool bFrame, string ocTempPath)
@@ -344,7 +359,7 @@ namespace OC
 
         private bool ComputeVolumeCells()
         {
-            OCProfiler.Start();
+            
             UnityEngine.SceneManagement.Scene curScene = UnityEngine.SceneManagement.SceneManager.GetSceneByName(Name);
             GameObject[] objs = curScene.GetRootGameObjects();
 
@@ -536,6 +551,7 @@ namespace OC
                 Traverse(go.transform.GetChild(i).gameObject);
         }
 
+
         private List<MeshRenderer> GetSceneMeshes()
         {
             var meshList = new List<MeshRenderer>();
@@ -584,6 +600,8 @@ namespace OC
                 for (int j = 0; j < groups.Length; j++)
                 {
                     var group = groups[j];
+              
+
                     lodMeshes.Clear();
                     var lods = group.GetLODs();
                     for (int k = 0; k < lods.Length; k++)
