@@ -11,7 +11,7 @@ namespace OC
 {
     public class PVSTest
     {
-        public static float errorRange = 0.15f;
+        public static float errorRange = 0.35f;
         public static int _width = 512;
         public static int _height = 512;
 
