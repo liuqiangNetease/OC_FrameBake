@@ -54,6 +54,7 @@
     <Compile Include="Core\ColorN.cs" />
     <Compile Include="Core\Config.cs" />
     <Compile Include="Core\GameObjectID.cs" />
+    <Compile Include="Core\IRenderer.cs" />
     <Compile Include="Core\MathUtil.cs" />
     <Compile Include="Core\MinRenderer.cs" />
     <Compile Include="Core\MultiScene.cs" />
@@ -62,6 +63,7 @@
     <Compile Include="Core\OCDataReader.cs" />
     <Compile Include="Core\OCDataWriter.cs" />
     <Compile Include="Core\OCVolumeScript.cs" />
+    <Compile Include="Core\Reader.cs" />
     <Compile Include="Core\RenderableObj.cs" />
     <Compile Include="Core\RenderableObjectSet.cs" />
     <Compile Include="Core\SingleScene.cs" />
@@ -70,6 +72,7 @@
     <Compile Include="Core\Util.cs" />
     <Compile Include="Core\Vertex.cs" />
     <Compile Include="Core\VisVolume.cs" />
+    <Compile Include="Core\Writer.cs" />
     <Compile Include="Core\seamless\Index.cs" />
     <Compile Include="Core\seamless\Tile.cs" />
     <Compile Include="Core\seamless\Window.cs" />
@@ -77,9 +80,11 @@
     <Compile Include="Editor\OCBakeWindow.cs" />
     <Compile Include="Editor\OCGenerator.cs" />
     <Compile Include="Editor\OCGeneratorBatch.cs" />
+    <Compile Include="Editor\OCGeneratorDiff.cs" />
     <Compile Include="Editor\OCGeneratorEditor.cs" />
     <Compile Include="Editor\OCGeneratorTest.cs" />
     <Compile Include="Editor\OCScenesConfig.cs" />
+    <Compile Include="Editor\OCVolume.cs" />
     <Compile Include="Editor\PVSTest.cs" />
     <Compile Include="Editor\VolumeCellRasterExample.cs" />
     <Compile Include="OCTest.cs" />

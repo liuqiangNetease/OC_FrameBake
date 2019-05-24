@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 using OC;
+using OC.Profiler;
+
 public class OCTest : MonoBehaviour
 {
 
@@ -22,10 +24,21 @@ public class OCTest : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        scene.UndoDisabledObjects();
+        
 
         if (OC)
-            scene.DoCulling(Camera.main.transform.position);
+        {
+            OCProfiler.Start();
+            for (int i=0; i< 1; i++)
+                scene.DoCulling(Camera.main.transform.position);
+            var time = OCProfiler.Stop();
+            //Debug.Log(time);
+
+        }
+        else
+        {
+            scene.UndoCulling();
+        }
     }
 }
 #endif

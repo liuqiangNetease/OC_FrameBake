@@ -21,6 +21,12 @@ namespace OC
 #endif
         }
 
+        internal void Clear()
+        {
+            cellList = null;
+            //_collidingCells = null;
+        }
+
         private UnityEngine.Bounds _aabb;
         public UnityEngine.Bounds aabb
         {
@@ -49,20 +55,15 @@ namespace OC
             }
         }
 
-        private List<Cell> _collidingCells = new List<Cell>();
+        //private List<Cell> _collidingCells = new List<Cell>();
         public Cell GetCell(Vector3 pos)
         {
             Cell ret = null;
 
-            _collidingCells.Clear();
-
-            owner.tree.GetColliding(_collidingCells, pos);
-            if (_collidingCells.Count > 0)
-            {
-                ret = _collidingCells[0];
-                if (_collidingCells[0].parent != null)
-                    ret = _collidingCells[0].parent;
-            }
+            owner.tree.GetColliding(ref ret, pos);
+            
+            if (ret != null && ret.parent != null)
+                ret = ret.parent;            
 
             return ret;
         }
@@ -124,16 +125,22 @@ namespace OC
                 if (Config.ComputePerframe)
                     if (count > Config.PerframeExecCount)
                     {
+                        Debug.Log("batch mode Scene name:" + owner.Name + " current bake Cell count:" + _curBakeCell);
                         cancelled = true;
                         break;
                     }
 
+                
+
+                Cell cell = cellList[i];
+
+                OCProfiler.Start();
+                cell.GetRenderableModels();
+                var oneCellTime = OCProfiler.Stop();
+
                 if (progress != null)
                 {
-                    if (progress(progressTitle,
-                        String.Format("Cell {0}/{1} 正在生成PVS数据 ..., CalcVis:{2}, UpdateVis:{3}", i,
-                            //cellList.Count, stat.CalcVisTime, stat.UpdateVisTime),((float) cellList.Count - i) / cellList.Count))
-                            cellList.Count, 0, 0), ((float)i) / cellList.Count))
+                    if (progress(progressTitle, string.Format("Cell {0}/{1} 正在生成PVS数据, OneCellTime:{2}", i, cellList.Count, oneCellTime), ((float)i) / cellList.Count))
                     {
                         cancelled = true;
                         owner.IsFinish = true;
@@ -141,17 +148,8 @@ namespace OC
                     }
                 }
 
-                Cell cell = cellList[i];
-                cell.GetRenderableModels();
-
                 _curBakeCell++;
                 count++;
-
-                //if (i < cellList.Count -1)
-                //{
-                //Cell from = cellList[i + 1];
-                //MergeCells(from, cell);
-                //}
             }
 
             return !cancelled;
@@ -159,14 +157,16 @@ namespace OC
 
         public void MergeCells()
         {
+            int beforeMerge = cellList.Count;
             for (int i = cellList.Count - 1; i >= 0; i--)
             {
                 var from = cellList[i];
 
                 if (!Config.IsBatchMode)
-                    Util.Progress("生成ObjectId", String.Format("合并cell {0}/{1} ...", i + 1, cellList.Count), ((float)i + 1) / cellList.Count);
+                    if (Util.Progress("生成ObjectId", String.Format("合并cell {0}/{1} ...", i + 1, cellList.Count), ((float)i + 1) / cellList.Count))
+                        break;
 
-                for (int j = i - 1; j >=0; j--)
+                for (int j = i - 1; j >= 0; j--)
                 {
                     var to = cellList[j];
 
@@ -174,6 +174,11 @@ namespace OC
                         break;
                 }
             }
+            int afterMerge = cellList.Count;
+
+            int mergeCount = beforeMerge - afterMerge;
+
+            Debug.Log("Merge Cells count:" + mergeCount);
         }
 
         public bool MergeCell(Cell from, Cell to)

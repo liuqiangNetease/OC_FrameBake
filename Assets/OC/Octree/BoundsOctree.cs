@@ -51,7 +51,7 @@ public class BoundsOctree<T> {
 	/// <param name="initialWorldPos">Position of the centre of the initial node.</param>
 	/// <param name="minNodeSize">Nodes will stop splitting if the new nodes would be smaller than this (metres).</param>
 	/// <param name="loosenessVal">Clamped between 1 and 2. Values > 1 let nodes overlap.</param>
-	public BoundsOctree(float initialWorldSize, Vector3 initialWorldPos, float minNodeSize, float loosenessVal) {
+	public BoundsOctree(float initialWorldSize = 8192, Vector3 initialWorldPos = default(Vector3), float minNodeSize = 2, float loosenessVal = 1.5f) {
 		if (minNodeSize > initialWorldSize) {
 			Debug.LogWarning("Minimum node size must be at least as big as the initial world size. Was: " + minNodeSize + " Adjusted to: " + initialWorldSize);
 			minNodeSize = initialWorldSize;
@@ -165,13 +165,14 @@ public class BoundsOctree<T> {
 	/// <param name="collidingWith">list to store intersections.</param>
 	/// <param name="checkBounds">point to check.</param>
 	/// <returns>Objects that intersect with the specified bounds.</returns>
-	public void GetColliding(List<T> collidingWith, Vector3 checkPoint)
+	public void GetColliding(ref T collidingWith, Vector3 checkPoint)
     {
         //#if UNITY_EDITOR
         // For debugging
         //AddCollisionCheck(checkBounds);
         //#endif
-        rootNode.GetColliding(ref checkPoint, collidingWith);
+        rootNode.GetColliding(ref checkPoint, ref collidingWith);
+
     }
 
     /// <summary>
@@ -314,4 +315,5 @@ public class BoundsOctree<T> {
 	void Shrink() {
 		rootNode = rootNode.ShrinkIfPossible(initialSize);
 	}
+
 }

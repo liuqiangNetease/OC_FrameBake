@@ -12,7 +12,7 @@ using UnityEngine;
 using UnityEngine.Assertions.Comparers;
 using UnityEngine.SceneManagement;
 
-namespace OC.Editor
+namespace OC
 {
     public partial class OCGenerator
     {
@@ -37,9 +37,11 @@ namespace OC.Editor
             //var tileX = 0;//int.Parse(System.Environment.GetCommandLineArgs()[2]);
             //var tileY = 0;// int.Parse(System.Environment.GetCommandLineArgs()[3]);
             //if (!OpenAllScenes(sceneName, tileX, tileY))
-                //return;
+            //return;
             //ClearLightmappingData();
             //GenerateAllSceneRenderableObjectID();
+
+            //var config = GetSceneConfig(sceneName);
         }
         //4 ocgenerate.bat 执行并行烘焙(得到pvs数据)
         public static void TestGenerateOCData(int index)
@@ -79,7 +81,41 @@ namespace OC.Editor
                 ExitOnBatchMode();
             }
         }
-        
+
+        public static void TestBakeOneTile(string sceneName, int x, int y)
+        {
+            //GenerateOCDataForTile();
+            var projectPath = "./ Assets";
+            var config = LoadSceneConfig(projectPath, 0);
+            if (string.IsNullOrEmpty(config.MapName))
+            {
+                Debug.LogErrorFormat("Can not get oc map config for stream scene in oc data generation, path {0} index {1}", projectPath, 0);
+                ExitOnBatchMode();
+                return;
+            }
+
+            if (x < 0 || x >= config.TileDimension || y < 0 || y >= config.TileDimension)
+            {
+                Debug.LogErrorFormat("The Sepcified Tile Index [{0}, {1}] exceeds the Tile Dimension [{3}, {4}] in map {5}",
+                    x, y, config.TileDimension, config.TileDimension, config.MapName);
+                ExitOnBatchMode();
+                return;
+            }
+
+            if (config.IsStreamScene)
+            {
+                ConfigGenerator(config);
+                var streamScene = new MultiScene(config.GetSceneAssetPath(), config.SceneNamePattern, config.TileDimension, config.TileSize);
+                var tileList = new List<Index>();
+                tileList.Add(new Index(x, y));
+                streamScene.BakeTiles(tileList, config.ComputePerframe, config.TemporaryContainer);
+            }
+            else
+            {
+                BakeSingleSceneByConfig(config);
+            }            
+        }
+
         //5 ocmerge.bat  MergeOCDarta：只在流式加载的地图中才会执行，把并行烘焙的结果合并输出
         public static void TestMergeOCDataForStreamScene()
         {
@@ -100,10 +136,9 @@ namespace OC.Editor
 
 
         //-----------------------------------------------
-        
-        public static OCSceneConfig CreateSceneConfig(string sceneName, string scenePath, bool frameBake = true, bool bStream = false, string sceneNameTemplate = "", 
-                                                               float cellSize = 2.0f, bool mergeCell = false, float weight = 0.9f, int tileDim = 8, int tileSize = 1000,
-                                                               bool customVolume = false, Vector3 center = default(Vector3), Vector3 size= default(Vector3))
+
+        public static OCSceneConfig CreateSceneConfig(string sceneName, string scenePath, bool frameBake = true, bool bStream = false, string sceneNameTemplate = "",
+                                                               float cellSize = 2.0f, bool mergeCell = false, float weight = 0.9f, int tileDim = 8, int tileSize = 1000)
         {
             OCSceneConfig config = new OCSceneConfig();
             config.MapName = sceneName;
@@ -137,12 +172,8 @@ namespace OC.Editor
             else
             {
                 config.SceneNamePattern = config.MapName;
-                config.TileDimension = 0;
+                config.TileDimension = 1;
             }
-
-            config.CustomVolume = customVolume;
-            config.VolumeCenter = center;
-            config.VolumeSize = size;
 
             return config;
         }
@@ -159,8 +190,8 @@ namespace OC.Editor
             sceneList.Add(CreateSceneConfig("M004", "Assets/Maps/maps/M004/Scenes"));
             sceneList.Add(CreateSceneConfig("M006", "Assets/Maps/maps/M006/Scenes"));
 
-            var config = CreateSceneConfig("002", "Assets/Maps/maps/0001/Scenes", true, true, "002 {0}x{1}", 56, false);
-            /*config.indices.Clear();
+            var config = CreateSceneConfig("002", "Assets/Maps/maps/0001/Scenes", true, true, "002 {0}x{1}", 256, false);
+            config.indices.Clear();
             config.indices.Add(new Index(2, 1));
             config.indices.Add(new Index(2, 2));
             config.indices.Add(new Index(2, 5));
@@ -172,11 +203,10 @@ namespace OC.Editor
             config.indices.Add(new Index(4, 6));
             config.indices.Add(new Index(5, 4));
             config.indices.Add(new Index(5, 5));
-            config.indices.Add(new Index(5, 7));*/
+            config.indices.Add(new Index(5, 7));
             sceneList.Add(config);
 
-            sceneList.Add(CreateSceneConfig("002", "Assets/LQ/Scenes/testStream", true, true, "002 {0}x{1}", 2, false, 0.9f, 8, 10));
-            sceneList.Add(CreateSceneConfig("testSimple", "Assets/LQ/Scenes"));
+        
            
 
             OCScenesConfig scenesConfig = new OCScenesConfig();
@@ -187,6 +217,7 @@ namespace OC.Editor
             File.WriteAllText("Assets/Assets/CoreRes/template/OCScenesConfig.json", jsonString);
 
         }
+
 
         public static void OpenScenes(string name)
         {
@@ -200,15 +231,16 @@ namespace OC.Editor
                 int tileDim = config.TileDimension;
                 int tileSize = config.TileSize;
 
-                var mainScene = EditorSceneManager.OpenScene(path + "AdditiveScene.unity");
+                EditorSceneManager.OpenScene(path + "AdditiveScene.unity");
 
-                for (int i = 0; i < tileDim; i++)
-                    for (int j = 0; j < tileDim; j++)
-                    {
-                        string sceneName = string.Format("{0} {1}x{2}", name, i, j);
-                        string scenePath = path + sceneName + ".unity";
-                        var scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
-                    }
+                foreach (var index in config.indices)
+                {
+                    string sceneName = string.Format("{0} {1}x{2}", name, index.x , index.y);
+                    string scenePath = path + sceneName + ".unity";
+
+                    EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
+                }
+
             }
             else
             {
@@ -257,7 +289,7 @@ namespace OC.Editor
                     var pos = templateGO.transform.position;
                     float offsetValue = -tileSize * tileDim * 0.5f;
                     Vector3 offset = new Vector3(offsetValue, 0, offsetValue);
-                    templateGO.transform.position = pos + offset; 
+                    templateGO.transform.position = pos + offset;
 
                     var coms = templateGO.GetComponentsInChildren<MeshRenderer>();
 
@@ -298,6 +330,80 @@ namespace OC.Editor
         {
             var config = GetSceneConfig(sceneName);
              ApplyOCData(sceneName, config.GetSceneAssetPath());
+        }
+
+        public static void WriteJsonConfig(string sceneName, bool IsStream, int screenWidth, int screenHeight, float maxPlayAreaHeight, float minPlayAreaHeight, float cellSize, 
+            bool IsFrameBake, int frameCellCount, bool IsMergeCell, float cellMergeWeight, bool IsMergeObjectID, float mergeDistance, float mergeObjectSize, 
+             List<Index> indices, string path = "D:/OCTemp",bool useCacheCell = true, bool useComputeShader = true)
+        {
+            var config = GetSceneConfig(sceneName);
+            config.MapName = sceneName;
+            config.ScreenWidth = screenWidth;
+            config.ScreenHeight = screenHeight;
+            config.MaxPlayerHeight = maxPlayAreaHeight;
+            config.MinPlayerHeight = minPlayAreaHeight;
+            config.CellSize = cellSize;
+            config.ComputePerframe = IsFrameBake;
+            config.PerframeExecCount = frameCellCount;        
+            config.MergeCell = IsMergeCell;
+            config.MergeCellWeight = cellMergeWeight;
+            config.MergeObjectID = IsMergeObjectID;
+            config.MergeObjectDistance = mergeDistance;
+            config.MergeObjectSize = mergeObjectSize;
+            config.IsStreamScene = IsStream;
+            config.UseComputeShader = useComputeShader;
+            config.UseVisbileCache = useCacheCell;
+            config.TemporaryContainer = path;
+
+            config.indices = indices;
+          
+            OCScenesConfig scenesConfig = GetScenesConfig();           
+        
+            for(int i=0;  i< scenesConfig.scenesConfig.Count; i++)
+            {
+                if(scenesConfig.scenesConfig[i].SceneNamePattern == config.SceneNamePattern)
+                {        
+                    scenesConfig.scenesConfig[i] = config;
+                    break;
+                }
+            }
+
+
+            //write
+            string jsonString = JsonUtility.ToJson(scenesConfig, true);
+            File.WriteAllText("Assets/Assets/CoreRes/template/OCScenesConfig.json", jsonString);
+        }
+
+        public static OCScenesConfig GetScenesConfig()
+        {
+            OCScenesConfig ret = new OCScenesConfig();
+            try
+            {
+                var filePath = "Assets/template/OCScenesConfig.json";                
+              
+                if (!File.Exists(filePath))
+                {
+                    var otherFilePath = "Assets/Assets/CoreRes/template/OCScenesConfig.json";
+                    if (!File.Exists(otherFilePath))
+                    {
+                        Debug.LogErrorFormat("Can not found config file: \"OCScenesConfig.json\" from path {0} or {1}", filePath, otherFilePath);
+                        return ret;
+                    }
+
+                    filePath = otherFilePath;
+                }              
+
+                string templateContent = Util.LoadJson(filePath);
+
+                ret = JsonUtility.FromJson<OCScenesConfig>(templateContent);
+
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e);
+            }
+
+            return ret;
         }
     }
 }

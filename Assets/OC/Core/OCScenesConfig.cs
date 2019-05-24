@@ -28,7 +28,7 @@ namespace OC
         public string GetSceneAssetPath()
         {
             string ret = SceneAssetPath;
-            if(UnityEditorInternal.InternalEditorUtility.inBatchMode == false)
+            if(Config.IsBatchMode == false)
             {
                 ret = "Assets/" + ret;
             }
@@ -57,17 +57,14 @@ namespace OC
         public int TileDimension;
         public int TileSize;
 
-        public bool CustomVolume;
-        public Vector3 VolumeCenter;
-        public Vector3 VolumeSize;
-
         public List<Index> indices;
+
 
         public override string ToString()
         {
             var str = String.Format(
-                "MapName {0}, Stream {1}, AssetPath {2}, SceneNamePattern {3} TempContainer {4} TileDim {5} TileSize {6} ComputeShader {7} CellSize {8} CustomVolume {9}",
-                MapName, IsStreamScene, SceneAssetPath, SceneNamePattern, TemporaryContainer, TileDimension, TileSize, UseComputeShader, CellSize, CustomVolume);
+                "MapName {0}, Stream {1}, AssetPath {2}, SceneNamePattern {3} TempContainer {4} TileDim {5} TileSize {6} ComputeShader {7} CellSize {8}",
+                MapName, IsStreamScene, SceneAssetPath, SceneNamePattern, TemporaryContainer, TileDimension, TileSize, UseComputeShader, CellSize);
 
 
             if (indices == null)

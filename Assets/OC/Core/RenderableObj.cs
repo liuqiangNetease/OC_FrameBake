@@ -21,7 +21,7 @@ namespace OC
     }
 
 
-    public class RenderableObj
+    public class RenderableObj : IComparable<RenderableObj>
     {
         private SingleScene _owner;
 
@@ -32,8 +32,17 @@ namespace OC
         public RenderableObj(SingleScene owner)
         {
             _owner = owner;
+            _visible = true;
         }
         private List<MeshRenderer> _rendererList = new List<MeshRenderer>();
+
+        bool _visible;
+        public bool IsVisible
+        {
+            get { return _visible; }
+            set { _visible = value; }
+        }
+
 
         private int guid;
 
@@ -93,13 +102,34 @@ namespace OC
 
         public void SetVisible(bool bVis)
         {
+            if (_visible == bVis)
+                return;
+
+            _visible = bVis;
             foreach (var meshRenderer in _rendererList)
             {
-                //meshRenderer.enabled = bVis;
-                meshRenderer.gameObject.SetActive(bVis);
+                meshRenderer.enabled = bVis;
+                //meshRenderer.gameObject.SetActive(false);
+                
+//                if (!bVis)
+//                {
+//                    Debug.LogFormat("Disable Renderer {0}", meshRenderer.name);
+//                }
             }
         }
-       
+
+        public int CompareTo(RenderableObj other)
+        {
+            int ret = 0;
+         
+            if (guid < other.guid)
+                ret = -1;
+            else if (guid > other.guid)
+                ret = 1;
+
+            return ret;
+                
+        }
     }
 }
 

@@ -210,20 +210,21 @@ public class BoundsOctreeNode<T> {
 	/// <param name="checkPoint">point to check. Passing by ref as it improves performance with structs.</param>
 	/// <param name="result">List result.</param>
 	/// <returns>Objects that intersect with the specified bounds.</returns>
-	public void GetColliding(ref Vector3 checkPoint, List<T> result)
+	public bool GetColliding(ref Vector3 checkPoint, ref T result)
     {
         // Are the input bounds at least partially in this node?
         if (!bounds.Contains(checkPoint))
         {
-            return;
+            return false;
         }
 
         // Check against any objects in this node
         for (int i = 0; i < objects.Count; i++)
-        {
+        {            
             if (objects[i].Bounds.Contains(checkPoint))
             {
-                result.Add(objects[i].Obj);
+                result = objects[i].Obj;                
+                return true;
             }
         }
 
@@ -231,10 +232,14 @@ public class BoundsOctreeNode<T> {
         if (children != null)
         {
             for (int i = 0; i < 8; i++)
-            {
-                children[i].GetColliding(ref checkPoint, result);
+            {  
+                bool res = children[i].GetColliding(ref checkPoint, ref result);
+                if (res)
+                    return true;
             }
         }
+
+        return false;
     }
 
     /// <summary>
@@ -548,6 +553,8 @@ public class BoundsOctreeNode<T> {
 			OctreeObject newObj = new OctreeObject { Obj = obj, Bounds = objBounds };
 			objects.Add(newObj);
 		}
+
+        
 	}
 
 	/// <summary>

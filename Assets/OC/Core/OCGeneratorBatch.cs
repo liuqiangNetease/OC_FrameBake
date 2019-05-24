@@ -13,7 +13,7 @@ using UnityEngine;
 using UnityEngine.Assertions.Comparers;
 using UnityEngine.SceneManagement;
 
-namespace OC.Editor
+namespace OC
 {
     public partial class OCGenerator
     {
@@ -22,6 +22,7 @@ namespace OC.Editor
         //jenkins interface 产生配置文件
         public static void GenerateOCGenMapConfigFile()
         {
+            Config.IsBatchMode = true;
             var mapName = System.Environment.GetCommandLineArgs()[1];
             var bakeForTile = bool.Parse(System.Environment.GetCommandLineArgs()[2]);
             var processorNum = int.Parse(System.Environment.GetCommandLineArgs()[3]);
@@ -57,7 +58,7 @@ namespace OC.Editor
         {
             if (config.IsStreamScene)
             {
-                var bakeTiles = config.GetBakeIndices();
+                var bakeTiles = config.indices;
                 var tileCount = bakeTiles.Count;
                 processorNum = processorNum > tileCount ? tileCount : processorNum;
                 if (processorNum == 0)
@@ -82,6 +83,7 @@ namespace OC.Editor
 
                         OCSceneConfig tempConfig = config;
                         tempConfig.indices = tiles;
+                        
                         WriteJsonFile("./Assets", index, tempConfig);
                         startTile += perCountArray[index];
                     }
@@ -100,19 +102,67 @@ namespace OC.Editor
         ////jenkins interface 
         public static void InitOCGeneration()
         {
+            Config.IsBatchMode = true;
             PrintSystemInfo();
 
-            /*var mapName = System.Environment.GetCommandLineArgs()[1];
+            var mapName = System.Environment.GetCommandLineArgs()[1];
             var tileX = int.Parse(System.Environment.GetCommandLineArgs()[2]);
             var tileY = int.Parse(System.Environment.GetCommandLineArgs()[3]);
             if (!OpenAllScenes(mapName, tileX, tileY))
-                return;*/
+                return;
 
-            //ClearLightmappingData();
-            //GenerateAllSceneRenderableObjectID();
+            ClearLightmappingData();
+            GenerateAllSceneRenderableObjectID();
         }
 
-      
+        private static bool OpenAllScenes(string mapName, int tileX, int tileY)
+        {
+            //close existed scenes 
+            Util.ClearScenes();
+
+            //open new scenes
+            var config = GetSceneConfig(mapName);
+            if (string.IsNullOrEmpty(config.MapName))
+            {
+                return false;
+            }
+
+            var sceneNames = new List<string>();
+            if (config.IsStreamScene)
+            {
+                int tileDimension = config.TileDimension;
+                for (int x = 0; x < tileDimension; ++x)
+                {
+                    for (int y = 0; y < tileDimension; ++y)
+                    {
+                        if (tileX >= 0 && tileY >= 0)
+                        {
+                            if (Math.Abs(x - tileX) > 1 || Math.Abs(y - tileY) > 1)
+                            {
+                                continue;
+                            }
+                        }
+
+                        sceneNames.Add(String.Format("{0}/{1}.unity", config.GetSceneAssetPath(),
+                            String.Format(config.SceneNamePattern, x, y)));
+                    }
+                }
+            }
+            else
+            {
+                sceneNames.Add(String.Format("{0}/{1}.unity", config.GetSceneAssetPath(), config.SceneNamePattern));
+            }
+
+            foreach (var sceneName in sceneNames)
+            {
+                if (!Util.IsSceneOpened(sceneName))
+                {
+                    Debug.LogFormat("batch mode Open Scene {0}...", sceneName);
+                    EditorSceneManager.OpenScene(sceneName, OpenSceneMode.Additive);
+                }
+            }
+            return true;
+        }
         public static void ClearLightmappingData()
         {
             Debug.Log("Clear Lighting Data Asset ...");
@@ -121,10 +171,28 @@ namespace OC.Editor
             Debug.Log("Clear Lighting Data Asset Successfully!");
         }
 
+        private static void GenerateAllSceneRenderableObjectID()
+        {
+            var sceneCount = SceneManager.sceneCount;
+            for (int i = 0; i < sceneCount; ++i)
+            {
+                var scene = SceneManager.GetSceneAt(i);
+                if (scene.name.Equals(String.Empty))
+                {
+                    continue;
+                }
+
+                var singleScene = new SingleScene(scene.path, scene.name, Index.InValidIndex);
+                singleScene.GeneraterRenderableObjectID();
+                singleScene.Save();
+            }
+        }
+
         //------------------------------
         //jenkins interface computer pvs data for json config
         public static void GenerateOCData()
         {
+            Config.IsBatchMode = true;
             var projectAssetPath = System.Environment.GetCommandLineArgs()[1];
             var index = int.Parse(System.Environment.GetCommandLineArgs()[2]);
             PrintArgs(2);
@@ -197,6 +265,7 @@ namespace OC.Editor
         //jenkins interface computer pvs data for one tile
         public static void GenerateOCDataForTile()
         {
+            Config.IsBatchMode = true;
             var projectPath = System.Environment.GetCommandLineArgs()[1];
             var index = int.Parse(System.Environment.GetCommandLineArgs()[2]);
             var processorNum = int.Parse(System.Environment.GetCommandLineArgs()[3]);
@@ -245,6 +314,7 @@ namespace OC.Editor
         //jenkins interface merge oc data into one file
         public static void MergeOCDataForStreamScene()
         {
+            Config.IsBatchMode = true;
             var projectPath = System.Environment.GetCommandLineArgs()[1];
             PrintArgs(1);
 
@@ -267,8 +337,6 @@ namespace OC.Editor
         }
 
 
-        //------------------------------------
-     
 
         //----------------------------
        
@@ -405,21 +473,17 @@ namespace OC.Editor
             Config.mergeObjectDistance = config.MergeObjectDistance;
             Config.mergeObjectMaxSize = config.MergeObjectSize;
             Config.UseComputeShader = config.UseComputeShader;
-            Config.UseVisibleCache = config.UseVisbileCache;
-            Config.SavePerCell = true;
-            Config.ClearOnSave = true;
+            Config.UseVisibleCache = config.UseVisbileCache;         
             Config.ComputePerframe = config.ComputePerframe;
             Config.PerframeExecCount = config.PerframeExecCount;
-            Config.IsBatchMode = UnityEditorInternal.InternalEditorUtility.inBatchMode;
+            //Config.IsBatchMode = UnityEditorInternal.InternalEditorUtility.inBatchMode;
 
-            Debug.LogFormat("batch mode {0} Use Compute Shader {1} Use Visible Cache {2} SavePerCell {3} ClearOnSave {4} ComputePerframe {5} PerframeExecCount {6} CellSize {7} MinHeight {8} MaxHeight {9} MergeObjectId {10} MergeCell {11} Clear Light Probes {12}", 
+            Debug.LogFormat("batch mode {0} Use Compute Shader {1} Use Visible Cache {2}  ComputePerframe {3} PerframeExecCount {4} CellSize {5} MinHeight {6} MaxHeight {7} MergeObjectId {8} MergeCell {9}", 
                 Config.IsBatchMode,
-                Config.UseComputeShader, Config.UseVisibleCache, 
-                Config.SavePerCell, Config.ClearOnSave,
+                Config.UseComputeShader, Config.UseVisibleCache,                
                 Config.ComputePerframe, Config.PerframeExecCount,
                 Config.CellSize, Config.MinPlayAreaHeight, Config.MaxPlayAreaHeight,
-                Config.mergeObjectID, Config.mergeCell,
-                Config.ClearLightProbes);
+                Config.mergeObjectID, Config.mergeCell);
         }
 
         private static void PrintSystemInfo()

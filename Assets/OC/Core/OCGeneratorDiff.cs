@@ -13,7 +13,7 @@ using UnityEngine;
 using UnityEngine.Assertions.Comparers;
 using UnityEngine.SceneManagement;
 
-namespace OC.Editor
+namespace OC
 {
     public partial class OCGenerator
     {

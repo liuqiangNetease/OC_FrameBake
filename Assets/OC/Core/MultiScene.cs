@@ -57,7 +57,7 @@ namespace OC
 
             treeMesh = null;
             if(Config.SoftRenderer)
-                treeMesh = new BoundsOctree<MeshRenderer>(10000, Vector3.zero, 8 * Config.CellSize, 1.25f);
+                treeMesh = new BoundsOctree<MeshRenderer>();
 #endif
 
             Path = path;
@@ -99,6 +99,7 @@ namespace OC
         }
         public void DoCulling(Vector3 position)
         {
+           
             UpdateLoadCallbacks();
 
             UndoDisabledObjects();
@@ -205,7 +206,8 @@ namespace OC
             foreach (var pair in tileMap)
             {
                 var scene = pair.Value as SingleScene;
-                scene.UndoDisabledObjects();
+                //scene.UndoDisabledObjects();
+                scene.UndoCulling();
             }
         }
 
@@ -226,7 +228,7 @@ namespace OC
             }
             return ret;
         }
-        public RenderableObj GetRenderableObject(ushort id)
+        public RenderableObj GetRenderableObject(int id)
         {
             RenderableObj ret = null;
 

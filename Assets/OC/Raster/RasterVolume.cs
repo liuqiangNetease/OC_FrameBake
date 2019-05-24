@@ -139,6 +139,11 @@ namespace OC.Raster
     {
         private LinkedList<RasterBounds> _volumes;
 
+        public int GetRasterBoundCount()
+        {
+            return _volumes.Count;
+        }
+
         public RasterVolumes()
         {
             _volumes = new LinkedList<RasterBounds>();

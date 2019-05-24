@@ -140,7 +140,7 @@ namespace OC
                     Tile tile = pair.Value;
                     if (tile != null)
                     {
-                        _owner.OpenScene(tile);
+                        _owner.OpenScene(tile);                       
                         tile.GeneraterRenderableObjectID();
                     }
                 }
@@ -195,7 +195,7 @@ namespace OC
                     Tile tile = pair.Value;
                     if (tile != null)
                     {
-                        _owner.OpenScene(tile);
+                        _owner.OpenScene(tile);                        
                         tile.GeneraterRenderableObjectID();
                     }
                 }

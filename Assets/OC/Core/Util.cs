@@ -9,18 +9,22 @@ using System.ComponentModel;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.IO;
-using UnityEditor;
+
+
 using UnityEditor.SceneManagement;
+using UnityEditor;
 
 
 namespace OC
 {
     public class Util
     {
+
         public static bool Progress(string strTitle, string strMessage, float fT)
         {
             return EditorUtility.DisplayCancelableProgressBar(strTitle, strMessage, fT);
         }
+
         public static bool IsLodMesh(MeshRenderer mesh)
         {
             bool ret = false;
@@ -157,10 +161,6 @@ namespace OC
                         break;
                     }
                 }
-                //if( mat.shader.name == "Nature/SpeedTree3" 
-                //|| mat.shader.name == "Nature/SpeedTree"
-                //|| mat.shader.name == "Nature/SpeedTree2"
-                //)
                 if (mat.HasProperty("_Cutoff") && mat.HasProperty("_Mode") == false)
                 {
                     ret = true;
@@ -170,36 +170,6 @@ namespace OC
             return ret;
         }
 
-
-
-        /*public static bool ContainAnyOpaque(MeshRenderer mr)
-        {
-            bool ret = false;
-            for (int j = 0; j < mr.sharedMaterials.Length; j++)
-            {
-                var mat = mr.sharedMaterials[j];
-
-                if (mat.shader.renderQueue < (int)UnityEngine.Rendering.RenderQueue.Transparent)
-                {
-                    float mode = 0;
-                    if (mat.HasProperty("_Mode"))
-                    {
-                        mode = mat.GetFloat("_Mode");
-                        if (mode == 0)
-                        {
-                            //不透明
-                            ret = true;
-                            break;
-                        }
-                        else
-                        {
-                            ret = false;
-                        }
-                    }
-                }
-            }
-            return ret;
-        }*/
 
         public static bool IsSceneOpened(string sceneName)
         {

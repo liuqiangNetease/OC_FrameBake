@@ -149,6 +149,9 @@ namespace OC.Raster
         //private static readonly float[] _testHeights = new float[]{ .4f, .6f, .8f };
         public IList<VolumeCell> ComputeVolumeCells(IEnumerable<Collider> allColliders, Func<string, string, float, bool> progress = null)
         {
+            if (_volumes.GetRasterBoundCount() <= 0)
+                return null;
+          
             GC.Collect();
 
             _stat.Reset();

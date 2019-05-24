@@ -11,23 +11,31 @@ using UnityEditor.SceneManagement;
 
 namespace OC
 {
+   
     internal class RenderableObjectSet : IEnumerable, IEnumerable<RenderableObj>
     {
         private SingleScene _owner;
 
-        private HashSet<RenderableObj> _renderableObjSet = new HashSet<RenderableObj>();
+        private List<RenderableObj> _renderableObjSet = new List<RenderableObj>();
         private Dictionary<int, RenderableObj> _idObjDict = new Dictionary<int, RenderableObj>();
         private Dictionary<MeshRenderer, RenderableObj> _meshObjDict = new Dictionary<MeshRenderer, RenderableObj>();
 
         public RenderableObjectSet(SingleScene owner)
         {
-            _owner = owner;
+            _owner = owner;            
         }
 
         public int Count
         {
             get { return _idObjDict.Count; }
         }
+        
+
+        public void Sort()
+        {
+            _renderableObjSet.Sort();
+        }
+
 
         public void Add(int guid, MeshRenderer renderer)
         {
@@ -68,7 +76,7 @@ namespace OC
             _renderableObjSet.Add(renderableObj);
         }
 
-        public bool RecalcRenderableObjectGuid(out ushort maxId, Func<string, string, float, bool> progress = null)
+        public bool RecalcRenderableObjectGuid(out int maxId, Func<string, string, float, bool> progress = null)
         {
             _idObjDict.Clear();
             maxId = 0;
@@ -125,7 +133,30 @@ namespace OC
             _meshObjDict.Clear();
         }
 
-        public RenderableObj GetByGuid(ushort guid)
+        public RenderableObj GetRuntimeOCObject(int guid)
+        {
+            RenderableObj obj = null;
+
+            if(guid < _renderableObjSet.Count)
+                obj = _renderableObjSet[guid];
+
+            return obj;
+        }
+
+        public void SetRenderableObjectVisible(RenderableObj obj, bool vis)
+        {      
+            obj.SetVisible(vis);            
+        }
+
+        public void SetAllVisible()
+        {
+            foreach(var obj in _renderableObjSet)
+            {
+                obj.SetVisible(true);
+            }
+        }
+
+        public RenderableObj GetByGuid(int guid)
         {
             RenderableObj obj = null;
             _idObjDict.TryGetValue(guid, out obj);

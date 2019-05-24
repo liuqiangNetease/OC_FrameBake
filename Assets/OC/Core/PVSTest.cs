@@ -12,21 +12,24 @@ namespace OC
     public class PVSTest
     {
         public static float errorRange = 0.35f;
-        public static int _width = 512;
-        public static int _height = 512;
+        public static int _width;// = 256;
+        public static int _height;// = 256;
 
         SingleScene singleScene;
 
         MultiScene streamScene;
 
+        private Dictionary<Component, bool> _cameraComps = new Dictionary<Component, bool>();
 
         private List<ReflectionProbe> _reflectionProbeList = new List<ReflectionProbe>();
         private List<Light> _lightList = new List<Light>();
         private List<LightProbeGroup> _lightProbeGroupList = new List<LightProbeGroup>();
-     
+
         public PVSTest(Camera camera, OCSceneConfig config)
         {
             cam = camera;
+            _width = (int)cam.pixelRect.width / 4;
+            _height = (int)cam.pixelRect.height / 4;
             this.config = config;
         }
 
@@ -74,7 +77,7 @@ namespace OC
             }
 
             var lightProbeGroup = GameObject.FindObjectsOfType<LightProbeGroup>();
-            foreach(var lightProbe in lightProbeGroup)
+            foreach (var lightProbe in lightProbeGroup)
             {
                 if (lightProbe.enabled)
                 {
@@ -83,8 +86,24 @@ namespace OC
                 }
             }
 
+            // 关闭相机的可能的后效组件影响
+            _cameraComps.Clear();
+            var cs = cam.GetComponents<Component>();
+            foreach (Component c in cs)
+            {
+                if (c != null)
+                {
+                    Transform tr = c as Transform;
+                    Camera ca = c as Camera;
+                    Behaviour beh = c as Behaviour;
+                    if (tr == null && ca == null && beh != null)
+                    {
+                        _cameraComps.Add(c, beh.enabled);
+                        beh.enabled = false;
+                    }
+                }
+            }
 
-            
         }
 
         public void Finish()
@@ -112,12 +131,19 @@ namespace OC
             {
                 reflectProbe.enabled = true;
             }
+
+            // 恢复相机上可能的后效组件
+            foreach (var pair in _cameraComps)
+            {
+                Behaviour beh = pair.Key as Behaviour;
+                if (beh != null) beh.enabled = pair.Value;
+            }
         }
 
         public void Do()
         {
-           
-           
+
+
             if (config.IsStreamScene)
             {
                 var ocDataFilePath = MultiScene.GetOCDataFilePath(config.GetSceneAssetPath(), config.SceneNamePattern);
@@ -148,23 +174,23 @@ namespace OC
                 singleScene = new OC.SingleScene(config.GetSceneAssetPath(), config.SceneNamePattern, Index.InValidIndex);
                 singleScene.TestLoad();
             }
-            
+
             //var name = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
             //SingleScene scene = new OC.SingleScene("", name, null);
             //scene.Load();
 
             int width = _width;
             int height = _height;
-          
+
             RenderTexture renderTex = RenderTexture.GetTemporary(width, height, 16, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
             RenderTexture.active = renderTex;
             cam.targetTexture = renderTex;
 
             Texture2D tex = new Texture2D(width, height, TextureFormat.ARGB32, false);
 
-            if(config.IsStreamScene)
+            if (config.IsStreamScene)
             {
-                foreach(var tile in streamScene.tileMap)
+                foreach (var tile in streamScene.tileMap)
                 {
                     var scene = tile.Value as SingleScene;
 
@@ -181,7 +207,7 @@ namespace OC
                             info = "cell " + i + "/" + finalCellCount;
                             bool bCancel = EditorUtility.DisplayCancelableProgressBar(title, info, (float)i / finalCellCount);
                             if (bCancel)
-                                break;                           
+                                break;
                             var cell = volume.cellList[i];
                             MoveCamera(scene, tex, cell.aabb.center);
                         }
@@ -197,23 +223,23 @@ namespace OC
                     var volume = singleScene.volumelList[v];
 
                     int finalCellCount = volume.cellList.Count;
-                  
+
                     for (int i = 0; i < finalCellCount; i++)
                     {
                         info = "cell " + i + "/" + finalCellCount;
                         bool bCancel = EditorUtility.DisplayCancelableProgressBar(title, info, (float)i / finalCellCount);
                         if (bCancel)
-                            break;                 
+                            break;
                         var cell = volume.cellList[i];
                         MoveCamera(singleScene, tex, cell.aabb.center);
                     }
                 }
             }
-            
+
 
             EditorUtility.ClearProgressBar();
         }
-        
+
 
         bool RotateCameraAndRender(SingleScene scene, Texture2D tex, Vector3 dir)
         {
@@ -225,7 +251,7 @@ namespace OC
             int width = tex.width;
             int height = tex.height;
 
-            scene.UndoDisabledObjects();
+            scene.UndoCulling();
             cam.Render();
             tex.ReadPixels(new Rect(0, 0, width, height), 0, 0);
             tex.Apply();
@@ -245,7 +271,7 @@ namespace OC
                 {
                     Color c1 = p1s[i * width + j];
                     Color c2 = p2s[i * width + j];
-                 
+
                     Color delta = c2 - c1;
                     if (delta.r > errorRange || delta.g > errorRange || delta.b > errorRange || delta.a > errorRange)
                     {
@@ -255,7 +281,7 @@ namespace OC
                 }
             }
 
-            scene.UndoDisabledObjects();
+            scene.UndoCulling();
             return ret;
         }
 
@@ -288,7 +314,7 @@ namespace OC
             //bSame = bSameF && bSameB && bSameL && bSameR;
 
             //if (bSame == false)
-               // Debug.LogFormat("Camera pos: x{0},y{1},z{2} is not the same color!", cam.transform.position.x, cam.transform.position.y, cam.transform.position.z);
+            // Debug.LogFormat("Camera pos: x{0},y{1},z{2} is not the same color!", cam.transform.position.x, cam.transform.position.y, cam.transform.position.z);
         }
 
         private Camera cam;
@@ -300,7 +326,7 @@ namespace OC
 
         private RenderingPath _oldRenderPath;
 
-     
+
         private ShadowQuality _oldShadowQuality;
 #if UNITY_EDITOR
         private Lightmapping.GIWorkflowMode _oldGiWorkflowMode;

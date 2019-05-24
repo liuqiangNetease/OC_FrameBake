@@ -1,5 +1,9 @@
-﻿using System.Collections;
+﻿#if UNITY_EDITOR
+
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using UnityEngine;
 
 namespace OC
@@ -7,8 +11,9 @@ namespace OC
     public interface IRenderer
     {
         void Prepare();
-        HashSet<MeshRenderer> Do(List<MeshRenderer> filterMeshRenderers = null);
+        HashSet<MeshRenderer> GetVisibleModels(List<MeshRenderer> renderers = null);
         void Finish();
     }
 }
 
+#endif

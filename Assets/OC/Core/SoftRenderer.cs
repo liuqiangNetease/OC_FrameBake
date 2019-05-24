@@ -13,6 +13,7 @@ namespace OC
     }
     public class SoftRenderer: IRenderer
     {
+
         struct TagZBuffer
         {
             public float zValue; // 1/z 
@@ -217,7 +218,7 @@ namespace OC
                 }
         }
 
-        public HashSet<MeshRenderer> Do(List<MeshRenderer> filterMeshRenderers = null)
+        public HashSet<MeshRenderer> GetVisibleModels(List<MeshRenderer> filterMeshRenderers)
         {
             ClearBuff();
 

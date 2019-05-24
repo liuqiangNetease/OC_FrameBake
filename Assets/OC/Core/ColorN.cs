@@ -7,13 +7,13 @@ namespace OC
 {
     public class ColorN
     {
-        private int _alpha = 254;
+        private readonly int _alpha = 254;
         public int Alpha
         {
             get { return _alpha; }
         }
 
-        private int _offset = 50;
+        private int _offset = 10;
         public int Offset
         {
             get { return _offset; }

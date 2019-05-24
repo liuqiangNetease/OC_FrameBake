@@ -33,23 +33,18 @@ namespace OC
 
 #if UNITY_EDITOR
      
+
         public void GetRenderableModels()
         {
-            //OCProfiler.Start();
-            //MoveCameraPosition(aabb.min);//1(0,0,0)
-            //MoveCameraPosition(aabb.max);//8(1,1,1)
+            MoveCameraPosition(aabb.min);//1(0,0,0)
+            MoveCameraPosition(aabb.max);//8(1,1,1)
             MoveCameraPosition(aabb.center);//9
-            //MoveCameraPosition(new Vector3(aabb.max.x, aabb.min.y, aabb.min.z));//2 (1,0,0)
-            //MoveCameraPosition(new Vector3(aabb.min.x, aabb.max.y, aabb.min.z));//5 (0,1,0)
-            //MoveCameraPosition(new Vector3(aabb.min.x, aabb.min.y, aabb.max.z));//4  (0,0,1)
-            //MoveCameraPosition(new Vector3(aabb.max.x, aabb.min.y, aabb.max.z));//3  (1,0,1)
-            //MoveCameraPosition(new Vector3(aabb.min.x, aabb.max.y, aabb.max.z));//6  (0,1,1)
-            //MoveCameraPosition(new Vector3(aabb.max.x, aabb.max.y, aabb.min.z));//7  (1,1,0)
-            //var renderTime = OCProfiler.Stop();
-
-            //var stat = stat0.Add(stat1).Add(stat2).Add(stat3).Add(stat4).Add(stat5).Add(stat6).Add(stat7).Add(stat8);
-            //stat.RenderTime = renderTime;
-            //return stat;
+            MoveCameraPosition(new Vector3(aabb.max.x, aabb.min.y, aabb.min.z));//2 (1,0,0)
+            MoveCameraPosition(new Vector3(aabb.min.x, aabb.max.y, aabb.min.z));//5 (0,1,0)
+            MoveCameraPosition(new Vector3(aabb.min.x, aabb.min.y, aabb.max.z));//4  (0,0,1)
+            MoveCameraPosition(new Vector3(aabb.max.x, aabb.min.y, aabb.max.z));//3  (1,0,1)
+            MoveCameraPosition(new Vector3(aabb.min.x, aabb.max.y, aabb.max.z));//6  (0,1,1)
+            MoveCameraPosition(new Vector3(aabb.max.x, aabb.max.y, aabb.min.z));//7  (1,1,0) 
         }
 
         private void MoveCameraPosition(Vector3 pos)
@@ -58,19 +53,15 @@ namespace OC
             HashSet<RenderableObj> cacheList = null;
             if (bCache)
             {
-
                 HashSet<RenderableObj> ret = null;
                 if (owner.owner.GetRenderObjList(pos, out ret))
-                {
-                    //OCProfiler.Start();
+                {                  
                     foreach (var obj in ret)
                     {
                         bool bContains = visibleModelList.Contains(obj);
                         if (bContains == false)
                             visibleModelList.Add(obj);
-                    }
-                    //var time = OCProfiler.Stop();
-                    //return new CellVisRenderStat(0, time);
+                    }             
                     return;
                 }
 
@@ -78,9 +69,8 @@ namespace OC
             }
 
             Camera.main.transform.position = pos;
-            //6 dir look and render 
 
-            if(Config.Use8DirLook == false)
+            if (Config.Use6DirLook)
             {
                 RotateCameraDir(Vector3.forward, cacheList);
                 RotateCameraDir(Vector3.back, cacheList);
@@ -89,7 +79,7 @@ namespace OC
                 RotateCameraDir(Vector3.left, cacheList);
                 RotateCameraDir(Vector3.right, cacheList);
             }
-           
+
             else
             {
                 RotateCameraDir(Vector3.forward, cacheList);
@@ -108,19 +98,16 @@ namespace OC
                 RotateCameraDir(new Vector3(-1, -1, 1), cacheList);
                 RotateCameraDir(new Vector3(-1, -1, -1), cacheList);
             }
-            
 
             if (bCache)
                 owner.owner.AddCacheCellPosition(pos, cacheList);
-
-            //return stat0.Add(stat1).Add(stat2).Add(stat3).Add(stat4).Add(stat5);
         }
 
         private void RotateCameraDir(Vector3 forward, HashSet<RenderableObj> ret)
         {
-            Camera.main.transform.forward = forward;
+            Camera.main.transform.forward = forward.normalized;
 
-            //OCProfiler.Start();
+            OCProfiler.Start();
 
             HashSet<MeshRenderer> visList = null;
 
@@ -128,22 +115,22 @@ namespace OC
             {
                 if (owner.owner.Owner == null)
                 {
-                    var renders = owner.owner.treeMesh.GetWithinFrustum(Camera.main);
-                    visList = owner.owner.renderer.Do(renders);
+                    var renders = owner.owner.treeMesh.GetWithinFrustum(Camera.main);                 
+                    visList = owner.owner._renderer.GetVisibleModels(renders);
                 }
                 else
                 {
                     var renders = owner.owner.Owner.treeMesh.GetWithinFrustum(Camera.main);
-                    visList = owner.owner.renderer.Do(renders);
+                    visList = owner.owner._renderer.GetVisibleModels(renders);
                 }
             }
             else
             {
-                visList = owner.owner.renderer.Do();
+                visList = owner.owner._renderer.GetVisibleModels();                
             }
-            //var calcVisTime = OCProfiler.Stop();
+            var calcVisTime = OCProfiler.Stop();
 
-            //OCProfiler.Start();
+            OCProfiler.Start();
             foreach (var mr in visList)
             {
                 RenderableObj renderObj = null;
@@ -157,7 +144,7 @@ namespace OC
 
                 if (renderObj == null)
                 {
-                    Debug.LogError("renderObj is null!");
+                    Debug.LogError("batch mode renderObj is null!");
                     continue;
                 }
 
@@ -168,7 +155,7 @@ namespace OC
                     ret.Add(renderObj);
             }
 
-            //var updateVisTime = OCProfiler.Stop();
+            var updateVisTime = OCProfiler.Stop();
         }
 
         public void Clear()
@@ -177,7 +164,6 @@ namespace OC
             visibleModelList = null;
             children = null;
             parent = null;
-
         }
 
         public void Save(OCDataWriter writer)
@@ -251,9 +237,7 @@ namespace OC
                 }
             }
 
-            //var cellSaveInitTime = OCProfiler.Stop();
-
-            //OCProfiler.Start();
+            //var cellSaveInitTime = OCProfiler.Stop();           
             foreach (var bitArray in visFlagDic)
             {
                 writer.Write(OC.Util.ConvertBitArray(bitArray.Value));
@@ -266,17 +250,11 @@ namespace OC
                 writer.Write(child.aabb.center);
             }
 
-            if (Config.ClearOnSave)
-            {
-                Clear();
-            }
-            //var cellSaveTime = OCProfiler.Stop();
-
-           // Debug.LogFormat("Cell Init Time {0}, Save Time {1}", cellSaveInitTime, cellSaveTime);
+            Clear();
         }
 #endif
 
-            public void AddChild(Cell child)
+        public void AddChild(Cell child)
         {
             child.visibleModelList.Clear();
             child.parent = this;
@@ -345,12 +323,12 @@ namespace OC
             {
                 var key = pair.Key;
                 var visFlags = pair.Value;
-                for (ushort i = 0; i < visFlags.Count; i++)
+                for (int i = 0; i < visFlags.Count; i++)
                 {
                     RenderableObj go = null;
                     if (owner.owner.Owner == null)
                     {
-                        go = owner.owner.GetRenderableObject(i);
+                        go = owner.owner.GetRuntimeOCObject(i);
                     }
                     else
                     {
@@ -370,7 +348,7 @@ namespace OC
                                 if (tile != null)
                                 {
                                     SingleScene curScene = tile as SingleScene;
-                                    go = curScene.GetRenderableObject(i);
+                                    go = curScene.GetRuntimeOCObject(i);
                                 }
                             }
 
@@ -379,17 +357,18 @@ namespace OC
                     }
                     if (go != null)
                     {
-                        bool bVis = visFlags[i];
-                        if (bVis == false)
-                        {
-                            //go.SetVisible(visFlags[i]);
-                            owner.owner.AddDisabledRenderableObj(go);
-                        }
+                        owner.owner.SetRenderableObjectVisible(go, visFlags[i]);
+                        //bool bVis = visFlags[i];
+                        //if (bVis == false)
+                        //{
+                            //owner.owner.AddDisabledRenderableObj(go);
+                          
+                        //}                        
                     }
                     else
                     {
                         if(i < owner.owner.renderableSet.Count)
-                            Debug.Log("not find Renderobj!" );
+                            Debug.LogError("Cell::Do RenderObj is null!");
                     }
                 }
             }
