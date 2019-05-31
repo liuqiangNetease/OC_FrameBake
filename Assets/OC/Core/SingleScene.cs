@@ -380,7 +380,7 @@ namespace OC
                             raster.AddVolume(volume.Box.bounds.min, volume.Box.bounds.max);
                             var cells = raster.ComputeVolumeCells(colliderList, Util.Progress);
 
-                            if (cells != null)
+                            if (cells != null && cells.Count > 0)
                             {
                                 cells = ProprocessCells(cells);
                                 var visVolume = new VisVolume(this);
@@ -437,7 +437,7 @@ namespace OC
                 raster.AddVolume(bounds.min, bounds.max);
                 var cells = raster.ComputeVolumeCells(colliderList, Util.Progress);
 
-                if (cells != null)
+                if (cells != null && cells.Count > 0)
                 {
                     cells = ProprocessCells(cells);
                     var visVolume = new VisVolume(this);
@@ -629,6 +629,73 @@ namespace OC
                             }
                         }
                     }
+                }
+
+                //terrain
+                var terrains = obj.GetComponentsInChildren<Terrain>();
+                foreach(var terrain in terrains)
+                {
+                    var terrainData = terrain.terrainData;
+                    var trees = terrainData.treeInstances;
+                    var treePrototypes = terrainData.treePrototypes;
+
+                    //var grasses = terrainData.
+                    var detailGrassProtos = terrainData.detailPrototypes;
+                    foreach(var grass in detailGrassProtos)
+                    {
+                        var gameObject = grass.prototype;
+                        var renderers = gameObject.GetComponentsInChildren<Renderer>();
+                        foreach (var renderer in renderers)
+                        {
+                            MeshRenderer mr = renderer as MeshRenderer;
+
+                            if (Util.IsValidOCRenderer(mr))
+                            {
+                                bool add = Util.TryAdd(mr, meshList);
+                                if (add)
+                                    renderableSet.Add(mr);
+
+
+                                if (Config.SoftRenderer && add)
+                                {
+                                    if (Owner == null)
+                                        treeMesh.Add(mr, mr.bounds);
+                                    else
+                                        Owner.treeMesh.Add(mr, mr.bounds);
+                                }
+
+                            }
+                        }
+                    }
+                    foreach(var tree in trees)
+                    {
+                        var index = tree.prototypeIndex;
+                        var treePrototype = treePrototypes[index];
+                        var gameObject = treePrototype.prefab;
+                        var renderers = gameObject.GetComponentsInChildren<Renderer>();
+                        foreach(var renderer in renderers)
+                        {
+                            MeshRenderer mr = renderer as MeshRenderer;
+
+                            if (Util.IsValidOCRenderer(mr))
+                            {
+                                bool add = Util.TryAdd(mr, meshList);
+                                if (add)
+                                    renderableSet.Add(mr);
+
+
+                                if (Config.SoftRenderer && add)
+                                {
+                                    if (Owner == null)
+                                        treeMesh.Add(mr, mr.bounds);
+                                    else
+                                        Owner.treeMesh.Add(mr, mr.bounds);
+                                }
+
+                            }
+                        }
+                    }
+                    
                 }
 
                 //multiTag

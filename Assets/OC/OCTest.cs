@@ -29,10 +29,10 @@ public class OCTest : MonoBehaviour
         if (OC)
         {
             OCProfiler.Start();
-            for (int i=0; i< 1; i++)
+            for (int i=0; i< 1000; i++)
                 scene.DoCulling(Camera.main.transform.position);
             var time = OCProfiler.Stop();
-            //Debug.Log(time);
+            Debug.Log(time);
 
         }
         else
