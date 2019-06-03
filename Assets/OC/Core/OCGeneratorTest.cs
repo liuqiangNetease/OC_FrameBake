@@ -1,18 +1,19 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml;
-using ArtPlugins;
+//using ArtPlugins;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Assertions.Comparers;
 using UnityEngine.SceneManagement;
 
-namespace OC
+namespace OC.Editor
 {
     public partial class OCGenerator
     {
@@ -29,19 +30,10 @@ namespace OC
         }
         //2 ocprojectgen.bat 为每个烘焙进程生成一个项目，其中大部分资源目录都是软链接到原始项目目录的
         //3 coinitgen.bat 删除需要烘焙的场景文件的全局光照信息，为场景文件中可渲染game object生成render id
-        public static void TestInitOCGeneration(string sceneName, int tileX, int tileY)
+        public static void TestInitOCGeneration(string sceneName)
         {
-            //InitOCGeneration();
-            PrintSystemInfo();
-            //var mapName = "002";//System.Environment.GetCommandLineArgs()[1];
-            //var tileX = 0;//int.Parse(System.Environment.GetCommandLineArgs()[2]);
-            //var tileY = 0;// int.Parse(System.Environment.GetCommandLineArgs()[3]);
-            //if (!OpenAllScenes(sceneName, tileX, tileY))
-            //return;
-            //ClearLightmappingData();
-            //GenerateAllSceneRenderableObjectID();
-
-            //var config = GetSceneConfig(sceneName);
+            //InitOCGeneration();   
+            OpenAllScenesAndGernerateGUID(sceneName);          
         }
         //4 ocgenerate.bat 执行并行烘焙(得到pvs数据)
         public static void TestGenerateOCData(int index)
@@ -85,7 +77,7 @@ namespace OC
         public static void TestBakeOneTile(string sceneName, int x, int y)
         {
             //GenerateOCDataForTile();
-            var projectPath = "./ Assets";
+            var projectPath = "./Assets";
             var config = LoadSceneConfig(projectPath, 0);
             if (string.IsNullOrEmpty(config.MapName))
             {
@@ -219,7 +211,7 @@ namespace OC
         }
 
 
-        public static void OpenScenes(string name)
+        /*public static void OpenScenes(string name)
         {
             OCSceneConfig config = OCGenerator.GetSceneConfig(name);
             string path = config.GetSceneAssetPath();
@@ -231,14 +223,18 @@ namespace OC
                 int tileDim = config.TileDimension;
                 int tileSize = config.TileSize;
 
-                EditorSceneManager.OpenScene(path + "AdditiveScene.unity");
+                var mainScene = SceneManager.GetSceneByName("AdditiveScene.unity");
+                if(mainScene.isLoaded == false)
+                    EditorSceneManager.OpenScene(path + "AdditiveScene.unity", OpenSceneMode.Additive);
 
                 foreach (var index in config.indices)
                 {
                     string sceneName = string.Format("{0} {1}x{2}", name, index.x , index.y);
                     string scenePath = path + sceneName + ".unity";
 
-                    EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
+                    var scene = SceneManager.GetSceneByName(sceneName);
+                    if (scene.isLoaded == false)
+                        EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
                 }
 
             }
@@ -246,7 +242,7 @@ namespace OC
             {
                 EditorSceneManager.OpenScene(path + name +".unity");
             }
-        }
+        }*/
 
         public static void GenerateTestStreamScenes(string name)
         {
@@ -404,6 +400,118 @@ namespace OC
             }
 
             return ret;
+        }
+
+        public static bool OpenAllScenesAndGernerateGUID(string mapName)
+        {
+            var config = GetSceneConfig(mapName);
+            if (string.IsNullOrEmpty(config.MapName))
+            {
+                return false;
+            }
+
+            if (config.IsStreamScene)
+            {
+                Util.ClearScenes();
+
+                var tiles = config.indices;
+
+                var multiScene = new MultiScene(config.GetSceneAssetPath(), config.SceneNamePattern, config.TileDimension, config.TileSize);
+
+                foreach (var tile in tiles)
+                {
+                    int tileX = tile.x;
+                    int tileY = tile.y;
+
+                    int tileDimension = config.TileDimension;
+                    for (int x = 0; x < tileDimension; ++x)
+                    {
+                        for (int y = 0; y < tileDimension; ++y)
+                        {
+                            if (Math.Abs(x - tileX) > 1 || Math.Abs(y - tileY) > 1)
+                            {
+                                continue;
+                            }
+
+                            //string scenePath = string.Format("{0}/{1}.unity", config.GetSceneAssetPath(), string.Format(config.SceneNamePattern, x, y));
+
+                            Util.OpenScene(config.GetSceneAssetPath(), string.Format(config.SceneNamePattern, x, y), OpenSceneMode.Single);
+                            Util.OpenScene(config.GetSceneAssetPath() + "/Streaming", string.Format(config.SceneNamePattern, x, y) + SingleScene.StreamSuffix, OpenSceneMode.Additive);
+
+                            SingleScene scene = new SingleScene(config.GetSceneAssetPath(), string.Format(config.SceneNamePattern, x, y), new Index(x, y), null, multiScene);
+                            scene.GeneraterRenderableObjectID();
+
+                            multiScene.AddMaxGUID(x, y, scene.MaxGameObjectIDCount);
+                        }
+                    }
+                }
+
+                multiScene.Save();
+            }
+            else
+            {
+                //string scenePath = string.Format("{0}/{1}.unity", config.GetSceneAssetPath(), config.SceneNamePattern);
+                Util.OpenScene(config.GetSceneAssetPath(), config.SceneNamePattern, OpenSceneMode.Single);
+
+                var singleScene = new SingleScene(config.GetSceneAssetPath(), config.SceneNamePattern, Index.InValidIndex);
+                singleScene.GeneraterRenderableObjectID();
+                singleScene.Save();
+            }
+
+
+           
+
+            return true;
+        }
+
+        public static bool OpenScene(string mapName, Index index)
+        {
+            var config = GetSceneConfig(mapName);
+            if (string.IsNullOrEmpty(config.MapName))
+            {
+                return false;
+            }
+
+            if (config.IsStreamScene)
+            {
+                string path = config.GetSceneAssetPath();              
+                Util.OpenScene(path , "AdditiveScene", OpenSceneMode.Additive);
+
+                var tiles = config.indices;             
+
+                foreach (var tile in tiles)
+                {
+                    int tileX = tile.x;
+                    int tileY = tile.y;
+
+                    if (tileX == index.x && tileY == index.y)
+                    {
+                        int tileDimension = config.TileDimension;
+                        for (int x = 0; x < tileDimension; ++x)
+                        {
+                            for (int y = 0; y < tileDimension; ++y)
+                            {
+                                if (Math.Abs(x - tileX) > 1 || Math.Abs(y - tileY) > 1)
+                                {
+                                    continue;
+                                }
+
+                                //string scenePath = string.Format("{0}/{1}.unity", config.GetSceneAssetPath(), string.Format(config.SceneNamePattern, x, y));
+
+                                Util.OpenScene(path, string.Format(config.SceneNamePattern, x, y),OpenSceneMode.Additive);
+                                Util.OpenScene(path + "/Streaming", string.Format(config.SceneNamePattern, x, y) + SingleScene.StreamSuffix, OpenSceneMode.Additive);
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                //string scenePath = string.Format("{0}/{1}.unity", config.GetSceneAssetPath(), config.SceneNamePattern);
+                Util.OpenScene(config.GetSceneAssetPath(), config.SceneNamePattern, OpenSceneMode.Single);              
+            }
+
+            return true;
         }
     }
 }

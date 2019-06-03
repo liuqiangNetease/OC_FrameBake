@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-//using Core.Utils;
+using Core.Utils;
 
 namespace OC.Core
 {
@@ -49,7 +49,7 @@ namespace OC.Core
            }
             set
             {
-                //AssertUtility.Assert(blockIndex >= 0 && blockIndex < _dimension * _dimension);
+               // AssertUtility.Assert(blockIndex >= 0 && blockIndex < _dimension * _dimension);
                 _blocks[blockIndex] = value;
             }
         }

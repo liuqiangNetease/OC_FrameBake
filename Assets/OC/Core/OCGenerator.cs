@@ -12,7 +12,7 @@ using UnityEngine;
 using UnityEngine.Assertions.Comparers;
 using UnityEngine.SceneManagement;
 
-namespace OC
+namespace OC.Editor
 {
     public partial class OCGenerator : MonoBehaviour
     {

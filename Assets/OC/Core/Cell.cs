@@ -143,8 +143,9 @@ namespace OC
                 }
 
                 if (renderObj == null)
-                {
-                    Debug.LogError("batch mode renderObj is null!");
+                {   
+                    string log = string.Format("batch mode renderObj name:{0}, scene name: {1} is null!", mr.gameObject.name, mr.gameObject.scene.name);
+                    Debug.LogError(log);
                     continue;
                 }
 
@@ -183,7 +184,6 @@ namespace OC
                 //mainFlag.SetAll(false);
                 //visFlagDic.Add(Index.InValidIndex, mainFlag);
 
-                //
                 Index currentIndex = owner.owner.TileIndex;
 
                 for (int i = -1; i < 2; i++)
@@ -196,7 +196,7 @@ namespace OC
                             var multiScene = owner.owner.Owner as MultiScene;
                             if(multiScene.tileMap.Count > 9)
                             {
-                                Debug.LogError("tile count=" + multiScene.tileMap.Count);
+                                Debug.LogError("batch mode tile count=" + multiScene.tileMap.Count);
                             }
                             var scene = multiScene.ExistTile(newIndex) as SingleScene;
                             if (scene != null)
@@ -207,7 +207,7 @@ namespace OC
                             }
                             else
                             {
-                                Debug.LogError("Cell::SaveData error!");
+                                Debug.LogError("batch mode Cell::SaveData error!");
                             }
                         }
                     }
@@ -319,57 +319,61 @@ namespace OC
         }
         public void Do()
         {
+            if(owner.owner.Owner == null)
+            {
+                foreach (var pair in visFlagDic)
+                {
+                    var key = pair.Key;
+                    var visFlags = pair.Value;                   
+
+                    for (int i = 0; i < visFlags.Count; i++)
+                    {
+                        RenderableObj go = owner.owner.GetRuntimeOCObject(i);                                          
+                        if (go != null)                     
+                            owner.owner.SetRenderableObjectVisible(go, visFlags[i]);                      
+                    }
+                }
+                return;
+            }
+
+            //-----------------
             foreach (var pair in visFlagDic)
             {
                 var key = pair.Key;
                 var visFlags = pair.Value;
+
+                Index selfIndex = owner.owner.TileIndex;
+                Index targetIndex = Index.InValidIndex;
+                targetIndex.x = selfIndex.x + key.x;
+                targetIndex.y = selfIndex.y + key.y;
+
+                Tile tile = null;
+                owner.owner.Owner.tileMap.TryGetValue(targetIndex, out tile);
+
+                if (tile == null)
+                    continue;
+
                 for (int i = 0; i < visFlags.Count; i++)
-                {
-                    RenderableObj go = null;
-                    if (owner.owner.Owner == null)
-                    {
-                        go = owner.owner.GetRuntimeOCObject(i);
-                    }
-                    else
-                    {
-                        if (key.Equals(Index.InValidIndex) == false)
-                        {
-                            Index selfIndex = owner.owner.TileIndex;
-
-                            if (owner.owner.Owner.IsValidIndex(selfIndex))
-                            {
-                                Index targetIndex = Index.InValidIndex;
-                                targetIndex.x = selfIndex.x + key.x;
-                                targetIndex.y = selfIndex.y + key.y;
-
-                                Tile tile = null;
-                                owner.owner.Owner.tileMap.TryGetValue(targetIndex, out tile);
-
-                                if (tile != null)
-                                {
-                                    SingleScene curScene = tile as SingleScene;
-                                    go = curScene.GetRuntimeOCObject(i);
-                                }
-                            }
-
-                        }
-
-                    }
+                {                   
+                    SingleScene curScene = tile as SingleScene;
+                    RenderableObj go = curScene.GetRuntimeOCObject(i);
                     if (go != null)
-                    {
                         owner.owner.SetRenderableObjectVisible(go, visFlags[i]);
-                        //bool bVis = visFlags[i];
-                        //if (bVis == false)
-                        //{
-                            //owner.owner.AddDisabledRenderableObj(go);
-                          
-                        //}                        
-                    }
-                    else
-                    {
-                        if(i < owner.owner.renderableSet.Count)
-                            Debug.LogError("Cell::Do RenderObj is null!");
-                    }
+
+                    //if (key.Equals(Index.InValidIndex) == false)
+                    //{
+                    //if (owner.owner.Owner.IsValidIndex(selfIndex))
+                    //{
+
+
+
+
+
+
+                    //}
+
+                    //}                  
+
                 }
             }
         }

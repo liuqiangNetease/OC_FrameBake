@@ -24,7 +24,6 @@ namespace OC
         internal void Clear()
         {
             cellList = null;
-            //_collidingCells = null;
         }
 
         private UnityEngine.Bounds _aabb;
@@ -55,18 +54,8 @@ namespace OC
             }
         }
 
-        //private List<Cell> _collidingCells = new List<Cell>();
-        public Cell GetCell(Vector3 pos)
-        {
-            Cell ret = null;
-
-            owner.tree.GetColliding(ref ret, pos);
-            
-            if (ret != null && ret.parent != null)
-                ret = ret.parent;            
-
-            return ret;
-        }
+      
+        
 
         public void Load(OCDataReader reader)
         {
@@ -178,7 +167,7 @@ namespace OC
 
             int mergeCount = beforeMerge - afterMerge;
 
-            Debug.Log("Merge Cells count:" + mergeCount);
+            Debug.Log("batch mode Merge Cells count:" + mergeCount);
         }
 
         public bool MergeCell(Cell from, Cell to)

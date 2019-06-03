@@ -4,14 +4,15 @@ using UnityEngine;
 using UnityEditor;
 using System.IO;
 using UnityEditor.SceneManagement;
+using OC;
 
-namespace OC
+namespace OC.Editor
 {
     public class OCBakeWindow : EditorWindow 
     {
-        MultiScene streamScene;
+        //MultiScene streamScene;
 
-        SingleScene singleScene;
+        //SingleScene singleScene;
 
         string sceneName = "002";
         string assetPath;
@@ -37,9 +38,35 @@ namespace OC
         float mergeObjectSize = 1;
         
         List<Index> indices = new List<Index>();
-        
 
-        bool bTest = false;
+        int tileX;
+        int tileY;
+
+        int jsonI;
+
+        bool bTest = true;
+
+        void ReadJsonConfig(string sceneName)
+        {
+            //open scene to get 
+            var config = OCGenerator.GetSceneConfig(sceneName);
+            cellSize = config.CellSize;
+            IsFrameBake = config.ComputePerframe;
+
+            indices = config.indices;
+
+            IsStreamScene = config.IsStreamScene;
+            maxPlayAreaHeight = config.MaxPlayerHeight;
+            minPlayAreaHeight = config.MinPlayerHeight;
+            IsMergeCell = config.MergeCell;
+            cellMergeWeight = config.MergeCellWeight;
+            mergeDistance = config.MergeObjectDistance;
+            mergeObjectSize = config.MergeObjectSize;
+            IsMergeObjectID = config.MergeObjectID;
+            frameCellCount = config.PerframeExecCount;
+            assetPath = config.SceneAssetPath;
+        }
+
         [MenuItem("OC/OCBakeWindow")]
         private static void ShowWindow() {
             var window = GetWindow<OCBakeWindow>();
@@ -54,7 +81,7 @@ namespace OC
             assetPath = EditorGUILayout.TextField("场景路径", assetPath);
             if(GUILayout.Button("打开场景"))
             {
-                OCGenerator.OpenScenes(sceneName);
+                OCGenerator.OpenScene(sceneName, new Index(tileX, tileY));
             }
             GUILayout.EndHorizontal();
 
@@ -94,9 +121,9 @@ namespace OC
           
             IsBakeOne = EditorGUILayout.BeginToggleGroup("只烘焙一小块地形（流式）", IsBakeOne);
             GUILayout.BeginHorizontal("tile index");
-            int tileX = 0;
+            
             tileX = EditorGUILayout.IntField("宽度索引（流式）", tileX);
-            int tileY = 0;
+            
             tileY = EditorGUILayout.IntField("高度索引（流式）", tileY);
             if (GUILayout.Button("烘焙单块（流式）"))
             {
@@ -118,16 +145,13 @@ namespace OC
                
             }*/
 
-     
-            
-
 
             bTest = EditorGUILayout.BeginToggleGroup("测试", bTest);
 
-            //if (GUILayout.Button("创建测试所用的场景"))
-            //{
-            //OCGenerator.GenerateTestStreamScenes(sceneName);
-            //}
+            if (GUILayout.Button("创建测试所用的场景"))
+            {
+                OCGenerator.GenerateTestStreamScenes(sceneName);
+            }
 
             GUILayout.BeginHorizontal("Json");
 
@@ -147,31 +171,11 @@ namespace OC
             if (GUILayout.Button("读Json配置"))
             {
                 //OCGenerator.OpenScenes(sceneName);
-                //ReadJsonConfig(sceneName);
+                ReadJsonConfig(sceneName);
             }
 
             GUILayout.EndHorizontal();
-            /*void ReadJsonConfig(string sceneName)
-            {
-                
-                //open scene to get 
-                var config = OCGenerator.GetSceneConfig(sceneName);
-                cellSize = config.CellSize;
-                IsFrameBake = config.ComputePerframe;
-
-                indices = config.indices;
-
-                IsStreamScene = config.IsStreamScene;
-                maxPlayAreaHeight = config.MaxPlayerHeight;
-                minPlayAreaHeight = config.MinPlayerHeight;
-                IsMergeCell = config.MergeCell;
-                cellMergeWeight = config.MergeCellWeight;
-                mergeDistance = config.MergeObjectDistance;
-                mergeObjectSize = config.MergeObjectSize;
-                IsMergeObjectID = config.MergeObjectID;
-                frameCellCount = config.PerframeExecCount;
-                assetPath = config.SceneAssetPath;
-            }*/
+            
 
 
             GUILayout.BeginHorizontal("test");
@@ -182,7 +186,7 @@ namespace OC
 
             if (GUILayout.Button("TestInitConfig(open scenes and generate ID)"))
             {
-                OCGenerator.TestInitOCGeneration(sceneName, 0, 0);
+                OCGenerator.TestInitOCGeneration(sceneName);
             }
 
             if (GUILayout.Button("程序化自动测试数据"))
@@ -193,7 +197,7 @@ namespace OC
             }
             
 
-            if (GUILayout.Button("打开场景并加载OC数据"))
+            /*if (GUILayout.Button("打开场景并加载OC数据"))
             {
                 OCGenerator.OpenScenes(sceneName);
                 OCSceneConfig config = OCGenerator.GetSceneConfig(sceneName);
@@ -234,10 +238,10 @@ namespace OC
                     singleScene.TestLoad();
                 }
 
-            }
+            }*/
             GUILayout.EndHorizontal();
 
-            GUILayout.BeginHorizontal("OC");
+            /*GUILayout.BeginHorizontal("OC");
             if (GUILayout.Button("打开OC"))
             {
                 OCSceneConfig config = OCGenerator.GetSceneConfig(sceneName);
@@ -246,8 +250,7 @@ namespace OC
                     if (streamScene == null)
                         Debug.LogError("stream scene is null!");
                     else
-                    {
-                        streamScene.UndoDisabledObjects();
+                    {                        
                         streamScene.DoCulling(Camera.main.transform.position);
                     }
                 }
@@ -256,8 +259,7 @@ namespace OC
                     if (singleScene == null)
                         Debug.LogError("stream scene is null!");
                     else
-                    {
-                        singleScene.UndoCulling();
+                    {                       
                         singleScene.DoCulling(Camera.main.transform.position);
                     }
                 }
@@ -272,7 +274,7 @@ namespace OC
                         Debug.LogError("stream scene is null!");
                     else
                     {
-                        streamScene.UndoDisabledObjects();
+                        streamScene.UndoCulling();
                     }
                 }
                 else
@@ -286,7 +288,7 @@ namespace OC
                 }
             }
 
-            GUILayout.EndHorizontal();
+            GUILayout.EndHorizontal();*/
             if (GUILayout.Button("TestApplyOCData"))
             {
                 OCGenerator.TestApplyOCData(sceneName);
@@ -300,7 +302,12 @@ namespace OC
             GUILayout.Label("烘焙", EditorStyles.boldLabel);
 
             GUILayout.BeginHorizontal("bake");
-            int jsonI = 0;
+
+            if(GUILayout.Button("产生所有场景ID并保存"))
+            {
+                OCGenerator.OpenAllScenesAndGernerateGUID(sceneName);
+            }
+            
             jsonI = EditorGUILayout.IntField("第几个Json配置文件", jsonI);
             if (GUILayout.Button("烘焙配置文件"))
             {
@@ -327,8 +334,6 @@ namespace OC
             {
                 OCGenerator.TestMergeOCDataForStreamScene();
             }
-
-            
         }
     }
 }

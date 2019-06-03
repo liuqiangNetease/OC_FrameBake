@@ -176,6 +176,19 @@ namespace OC
             return SceneManager.GetSceneByName(sceneName).isLoaded;
         }
 
+        public static void OpenScene(string path, string name, OpenSceneMode mode)
+        {
+            if(IsSceneOpened(name))
+            {
+                return;
+            }
+
+            Debug.LogFormat("batch mode Open Scene {0}...", name);
+            EditorSceneManager.OpenScene(path + "/" + name + ".unity", mode);
+
+            Resources.UnloadUnusedAssets();
+        }
+
 #if UNITY_EDITOR
         public static void ClearScenes()
         {

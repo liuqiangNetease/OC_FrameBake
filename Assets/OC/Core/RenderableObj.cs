@@ -61,7 +61,8 @@ namespace OC
                 if (com == null)
                     com = _rendererList[i].gameObject.AddComponent<GameObjectID>();
                 com.GUID = guid;
-            }
+
+            }          
         }
 
         public void Add(RenderableObj obj)
@@ -106,29 +107,24 @@ namespace OC
                 return;
 
             _visible = bVis;
+            
             foreach (var meshRenderer in _rendererList)
             {
-                meshRenderer.enabled = bVis;
-                //meshRenderer.gameObject.SetActive(false);
-                
-//                if (!bVis)
-//                {
-//                    Debug.LogFormat("Disable Renderer {0}", meshRenderer.name);
-//                }
+                meshRenderer.enabled = bVis;              
             }
         }
 
         public int CompareTo(RenderableObj other)
         {
             int ret = 0;
-         
+
             if (guid < other.guid)
                 ret = -1;
             else if (guid > other.guid)
                 ret = 1;
 
             return ret;
-                
+
         }
     }
 }

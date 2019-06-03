@@ -39,6 +39,8 @@ namespace OC
         public static bool Use6DirLook = true;
 
         public static bool CameraRect = true;
+
+        public static bool PreProcess = true;
     }
 }
 

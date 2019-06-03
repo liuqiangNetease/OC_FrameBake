@@ -16,10 +16,10 @@ namespace OC
         {
             _cam = null;
             _shader = null;
-            _computeShader = AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/Assets/ArtPlugins/OC/OCVisCompute.compute");
+            _computeShader = AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/Assets/ArtPlugins/OC/Resources/OCVisCompute.compute");
             if (_computeShader == null)
             {
-                _computeShader = AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/ArtPluginOut/OC/OCVisCompute.compute");
+                _computeShader = AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/ArtPluginOut/OC/Resources/OCVisCompute.compute");
             }
 
             if (_computeShader == null)

@@ -62,7 +62,10 @@
     <Compile Include="Core\OCDataHeader.cs" />
     <Compile Include="Core\OCDataReader.cs" />
     <Compile Include="Core\OCDataWriter.cs" />
+    <Compile Include="Core\OCStreamTest.cs" />
+    <Compile Include="Core\OCTest.cs" />
     <Compile Include="Core\OCVolumeScript.cs" />
+    <Compile Include="Core\PVSTest.cs" />
     <Compile Include="Core\Reader.cs" />
     <Compile Include="Core\RenderableObj.cs" />
     <Compile Include="Core\RenderableObjectSet.cs" />
@@ -85,9 +88,7 @@
     <Compile Include="Editor\OCGeneratorTest.cs" />
     <Compile Include="Editor\OCScenesConfig.cs" />
     <Compile Include="Editor\OCVolume.cs" />
-    <Compile Include="Editor\PVSTest.cs" />
     <Compile Include="Editor\VolumeCellRasterExample.cs" />
-    <Compile Include="OCTest.cs" />
     <Compile Include="Octree\BoundsOctree.cs" />
     <Compile Include="Octree\BoundsOctreeNode.cs" />
     <Compile Include="Octree\PointOctree.cs" />

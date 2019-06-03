@@ -1,8 +1,9 @@
-﻿using System;
+﻿using OC.Core;
+using System;
 using System.Collections.Generic;
 using System.IO;
-using ArtPlugins;
-using OC.Core;
+//using ArtPlugins;
+//using OC.Core;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -48,6 +49,53 @@ namespace OC
         private int _tileSize;
         private byte[] _data;
 
+        private int[,] _maxIDs;
+
+        public void AddMaxGUID(int tileX, int tileY, int maxID)
+        {
+            if (IsValidIndex(new Index(tileX, tileY)))
+                _maxIDs[tileX, tileY] = maxID;
+        }
+
+        public int GetMaxGUID(int tileX, int tileY)
+        {
+            if (IsValidIndex(new Index(tileX, tileY)))
+                return _maxIDs[tileX, tileY];
+
+            return SingleScene.InvalidID;
+        }
+
+        public void Save()
+        {
+            using (BinaryWriter w = new BinaryWriter(File.Open(Path + NamePattern, FileMode.Create)))
+            {
+                Writer writer = new Writer(w);
+                //w.Write(NamePattern);
+                //w.Write(TileDimension);
+                //w.Write(_tileSize);
+                
+                for(int i=0; i< TileDimension; i++)
+                    for(int j =0; j< TileDimension; j++)
+                    {
+                        var guid = _maxIDs[i, j];
+                        w.Write(guid);
+                    }
+            }
+        }
+
+        public void Load()
+        {
+            using (BinaryReader reader = new BinaryReader(File.Open(Path + NamePattern, FileMode.Open)))
+            {
+                Reader r = new Reader(reader);
+
+                for (int i = 0; i < TileDimension; i++)
+                    for (int j = 0; j < TileDimension; j++)
+                    {              
+                        _maxIDs[i, j] = r.ReadInt(); 
+                    }
+            }
+        }
 
         public MultiScene(string path, string namePattern, int tileDimension, int tileSize, byte[] data = null)
         {
@@ -59,6 +107,12 @@ namespace OC
             if(Config.SoftRenderer)
                 treeMesh = new BoundsOctree<MeshRenderer>();
 #endif
+            _maxIDs = new int[tileDimension, tileDimension];
+            for (int i = 0; i < TileDimension; i++)
+                for (int j = 0; j < TileDimension; j++)
+                {
+                    _maxIDs[i, j] = SingleScene.InvalidID;                   
+                }
 
             Path = path;
             NamePattern = namePattern;
@@ -99,10 +153,8 @@ namespace OC
         }
         public void DoCulling(Vector3 position)
         {
-           
             UpdateLoadCallbacks();
-
-            UndoDisabledObjects();
+       
             var cell = GetCurrentCell(position);
             if (cell != null)
             {
@@ -169,7 +221,7 @@ namespace OC
             {
                 int renderId = multitag.renderId;
 
-                var sceneName = go.scene.name;
+                var sceneName = multitag.sceneName;// go.scene.name;
                 Index index;
                 if (_sceneName2Index.TryGetValue(sceneName, out index))
                 {
@@ -189,7 +241,7 @@ namespace OC
             {
                 int renderId = multitag.renderId;
 
-                var sceneName = go.scene.name;
+                var sceneName = multitag.sceneName;// go.scene.name;
                 Index index;
                 if (_sceneName2Index.TryGetValue(sceneName, out index))
                 {
@@ -201,12 +253,11 @@ namespace OC
                 }
             }
         }
-        public void UndoDisabledObjects()
+        public void UndoCulling()
         {
             foreach (var pair in tileMap)
             {
                 var scene = pair.Value as SingleScene;
-                //scene.UndoDisabledObjects();
                 scene.UndoCulling();
             }
         }
@@ -237,7 +288,7 @@ namespace OC
                 foreach (var pair in tileMap)
                 {
                     SingleScene tile = pair.Value as SingleScene;
-                    ret = tile.GetRenderableObject(id);
+                    ret = tile.GetRuntimeOCObject(id);
                     if (ret != null)
                         break;
                 }
@@ -338,7 +389,7 @@ namespace OC
                     var data = new byte[length];
                     if (fs.Read(data, 0, (int) length) != length)
                     {
-                        Debug.LogErrorFormat("Read OC Data File Failed {0}", filePath);
+                        Debug.LogErrorFormat("batch mode Read OC Data File Failed {0}", filePath);
                         return null;
                     }
 
@@ -418,6 +469,11 @@ namespace OC
             outputName = SingleScene.GetOCDataFileName(outputName);
 
             return outputName;
+        }
+
+        public void SaveData()
+        {
+
         }
 
         private void FrameBake()

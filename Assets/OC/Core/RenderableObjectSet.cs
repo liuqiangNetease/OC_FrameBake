@@ -11,7 +11,7 @@ using UnityEditor.SceneManagement;
 
 namespace OC
 {
-   
+
     internal class RenderableObjectSet : IEnumerable, IEnumerable<RenderableObj>
     {
         private SingleScene _owner;
@@ -22,22 +22,27 @@ namespace OC
 
         public RenderableObjectSet(SingleScene owner)
         {
-            _owner = owner;            
+            _owner = owner;
         }
 
         public int Count
         {
             get { return _idObjDict.Count; }
         }
-        
+
 
         public void Sort()
         {
             _renderableObjSet.Sort();
         }
 
+        public void RuntimeAdd(int guid, MeshRenderer renderer)
+        { 
+            var renderObj = _renderableObjSet[guid];
+            renderObj.AddMeshRenderer(renderer);
+        }
 
-        public void Add(int guid, MeshRenderer renderer)
+        /*public void Add(int guid, MeshRenderer renderer)
         {
             RenderableObj obj = null;
             if (_idObjDict.TryGetValue(guid, out obj))
@@ -54,7 +59,7 @@ namespace OC
             }
 
             _meshObjDict[renderer] = obj;
-        }
+        }*/
 
         internal void Add(List<MeshRenderer> renderers)
         {
@@ -122,8 +127,20 @@ namespace OC
             foreach (var obj in removeList)
             {
                 _renderableObjSet.Remove(obj);
-                _idObjDict.Remove(obj.GUID);
+                //_idObjDict.Remove(obj.GUID);
             }
+        }
+
+        public void Resize(int maxID)
+        {
+            _renderableObjSet.Clear();
+
+            for(int i=0; i< maxID; i++)
+            {
+                var obj = new RenderableObj(_owner);
+                obj.SetID(i);
+                _renderableObjSet.Add(obj);
+            }           
         }
 
         public void Clear()
@@ -137,20 +154,20 @@ namespace OC
         {
             RenderableObj obj = null;
 
-            if(guid < _renderableObjSet.Count)
+            if (guid < _renderableObjSet.Count)
                 obj = _renderableObjSet[guid];
 
             return obj;
         }
 
         public void SetRenderableObjectVisible(RenderableObj obj, bool vis)
-        {      
-            obj.SetVisible(vis);            
+        {
+            obj.SetVisible(vis);
         }
 
         public void SetAllVisible()
         {
-            foreach(var obj in _renderableObjSet)
+            foreach (var obj in _renderableObjSet)
             {
                 obj.SetVisible(true);
             }
@@ -170,14 +187,10 @@ namespace OC
             return obj;
         }
 
-        public void Remove(MeshRenderer renderer)
+        public void RuntimeRemove(int guid)
         {
-            RenderableObj obj = null;
-            if (_meshObjDict.TryGetValue(renderer, out obj))
-            {
-                _meshObjDict.Remove(renderer);
-                obj.RemoveMeshRenderer(renderer);
-            }
+            RenderableObj obj = _renderableObjSet[guid];
+            obj.Clear();           
         }
 
 

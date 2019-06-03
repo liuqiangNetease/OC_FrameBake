@@ -6,14 +6,14 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml;
-using ArtPlugins;
+//using ArtPlugins;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Assertions.Comparers;
 using UnityEngine.SceneManagement;
 
-namespace OC
+namespace OC.Editor
 {
     public partial class OCGenerator
     {
@@ -113,7 +113,7 @@ namespace OC
 
             ClearLightmappingData();
             GenerateAllSceneRenderableObjectID();
-        }
+        }        
 
         private static bool OpenAllScenes(string mapName, int tileX, int tileY)
         {
@@ -160,6 +160,16 @@ namespace OC
                     Debug.LogFormat("batch mode Open Scene {0}...", sceneName);
                     EditorSceneManager.OpenScene(sceneName, OpenSceneMode.Additive);
                 }
+
+                if (Config.PreProcess && config.IsStreamScene)
+                {
+                    string streamSceneName = sceneName + SingleScene.StreamSuffix;
+                    if (!Util.IsSceneOpened(streamSceneName))
+                    {
+                        Debug.LogFormat("batch mode Open Scene {0}...", streamSceneName);
+                        EditorSceneManager.OpenScene(streamSceneName, OpenSceneMode.Additive);
+                    }
+                }
             }
             return true;
         }
@@ -178,6 +188,10 @@ namespace OC
             {
                 var scene = SceneManager.GetSceneAt(i);
                 if (scene.name.Equals(String.Empty))
+                {
+                    continue;
+                }
+                if(scene.name.EndsWith(SingleScene.StreamSuffix))
                 {
                     continue;
                 }
@@ -368,8 +382,9 @@ namespace OC
                         var otherFilePath = "Assets/Assets/CoreRes/template/OCScenesConfig.json";
                         if (!File.Exists(otherFilePath))
                         {
-                            Debug.LogErrorFormat("Can not found config file: \"OCScenesConfig.json\" from path {0} or {1}", filePath, otherFilePath);
-                            return ret;
+                            //Debug.LogErrorFormat("Can not found config file: \"OCScenesConfig.json\" from path {0} or {1}", filePath, otherFilePath);
+                            //return ret;
+                            otherFilePath = "Assets/CoreRes/template/OCScenesConfig.json";
                         }
 
                         filePath = otherFilePath;

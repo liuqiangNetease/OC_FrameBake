@@ -6,14 +6,14 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml;
-using ArtPlugins;
+//using ArtPlugins;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Assertions.Comparers;
 using UnityEngine.SceneManagement;
 
-namespace OC
+namespace OC.Editor
 {
     public partial class OCGenerator
     {
@@ -94,6 +94,7 @@ namespace OC
                     foreach (var tag in tags)
                     {
                         tag.renderId = MultiTagBase.InvalidRenderId;
+                        tag.sceneName = string.Empty;
 #if UNITY_EDITOR
                         EditorUtility.SetDirty(tag);
 #endif
@@ -236,7 +237,7 @@ namespace OC
 
                     if (isStreamScene)
                     {
-                        SetMultiTagRenerId(go.transform, guid);
+                        SetMultiTagRenerId(go.transform, guid, sceneName);
                     }
                 }                
             }
@@ -256,7 +257,7 @@ namespace OC
             return success;
         }
 
-        private static void SetMultiTagRenerId(Transform transform, int renderId)
+        private static void SetMultiTagRenerId(Transform transform, int renderId, string sceneName)
         {
             var parent = transform;
             while (parent != null)
@@ -271,6 +272,7 @@ namespace OC
                     }
 
                     tag.renderId = renderId;
+                    tag.sceneName = sceneName;
 
                     EditorUtility.SetDirty(tag);
                     break;

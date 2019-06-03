@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-#if UNITY_EDITOR
+
 namespace OC
 {
     public class ColorN
@@ -38,6 +38,7 @@ namespace OC
             }
 
             int k = 0;
+            a[0] = a[1] = a[2] = 0;
             while (temp > 0)
             {
                 a[k++] = temp % (256 - _offset);
@@ -62,5 +63,4 @@ namespace OC
 
     }
 }
-#endif
 

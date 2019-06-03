@@ -2,12 +2,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-//using Core.Utils;
 using OC.Profiler;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using ArtPlugins;
+
 #if UNITY_EDITOR
+using Core.Utils;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using OC.Raster;
@@ -16,20 +17,19 @@ using OC.Editor;
 
 namespace OC
 {
-    public class MultiTagBase: MonoBehaviour
-    {
-        public static int InvalidRenderId = -1;
-        public int renderId;
-    }
     public class SingleScene : Tile
     {
 
         private static readonly string OCDataFileSuffix = "_oc.txt";
 
+        public static string StreamSuffix = "_Streaming";
+
+        public static int InvalidID = -1;
+
         public BoundsOctree<OC.Cell> tree;
         public BoundsOctree<MeshRenderer> treeMesh;
 
-        protected int _maxGameObjectIDCount = 4 * 8;
+        protected int _maxGameObjectIDCount = InvalidID;
 
         private int[,] _neighborMaxObjIdTable;
 
@@ -60,6 +60,16 @@ namespace OC
             get { return name; }
             set { name = value; }
         }
+
+        public string StreamPath
+        {
+            get { return Path + "/Streaming/"; }
+        }
+        public string StreamSceneName
+        {
+            get { return name + StreamSuffix; }
+        }
+
 
         private string path;
         public string Path
@@ -92,6 +102,12 @@ namespace OC
             treeMesh = null;
 
             _neighborMaxObjIdTable = null;
+
+            if (owner != null)
+            {                
+                var streamScene = owner as MultiScene;
+                streamScene.GetMaxGUID(index.x, index.y);
+            }
         }
 
         private Dictionary<Vector3, HashSet<RenderableObj>> cellMap = new Dictionary<Vector3, HashSet<RenderableObj>>();
@@ -116,25 +132,17 @@ namespace OC
 
         internal RenderableObjectSet renderableSet;
 
-      
 
         public void UndoCulling()
         {
             renderableSet.SetAllVisible();
         }
+
         public void DoCulling(Vector3 position)
-        {
+        {   
             var cell = GetCurrentCell(position);
             if (cell != null)
                 cell.Do();
-            return;
-            //OCProfiler.Start();
-            /*UndoDisabledObjects();
-            var cell = GetCurrentCell(position);
-            if (cell != null)
-                cell.Do();*/
-            //var time = OCProfiler.Stop();
-            //Debug.Log("DoCulling:" + time);
         }
 
 
@@ -156,7 +164,7 @@ namespace OC
                 if (Owner == null)
                 {
                     Open(OpenSceneMode.Single);
-                    if ( !GeneraterRenderableObjectID())
+                    if (!GeneraterRenderableObjectID())
                     {
                         return false;
                     }
@@ -204,7 +212,7 @@ namespace OC
                 {
                     CopyOCDataTo(tempPath);
                     //OC.Editor.OCGenerator.GenerateSceneOCDiffPatch(Name, tempPath);
-                    OC.OCGenerator.SaveDiffFile(Name, tempPath);
+                    OC.Editor.OCGenerator.SaveDiffFile(Name, tempPath);
                 }
 
                 //Clear();
@@ -217,9 +225,7 @@ namespace OC
         internal void Clear()
         {
             cellMap.Clear();
-            
-        
-            
+                    
             if (renderableSet != null)
                 renderableSet.Clear();
             
@@ -252,7 +258,7 @@ namespace OC
             for (int i = curBakeVolume; i < volumelList.Count; ++i)
             {
                 var volume = volumelList[i];
-                if (!volume.GetRenderableModels(String.Format("Volume {0}/{1} 正在生成PVS数据 ", i + 1, volumelList.Count),
+                if (!volume.GetRenderableModels(String.Format("Volume {0}/{1} 正在生成场景 {2} 的PVS数据 ", i + 1, volumelList.Count, Name),
                     Util.Progress))
                 {
                     Finish();
@@ -277,7 +283,7 @@ namespace OC
 
             if(Prepare() == false)
             {
-                Debug.Log("bake Prepare fail!");
+                Debug.Log("batch mode bake Prepare fail!");
                 return false;
             }
             if(bFrame && Owner == null)
@@ -323,36 +329,11 @@ namespace OC
         }
 
         private bool CustumComputeVolumeCells()
-        {            
+        {
             volumelList.Clear();
 
             Scene curScene = SceneManager.GetSceneByName(Name);
             GameObject[] roots = curScene.GetRootGameObjects();
-
-            
-
-            var bounds = new Bounds();
-            var colliderList = new List<Collider>();
-
-            //-------------
-
-            for (int i = 0; i < curScene.rootCount; i++)
-            {
-                var root = roots[i];
-                if (root.activeInHierarchy == false)
-                    continue;
-                var colliders = root.GetComponentsInChildren<Collider>();
-                foreach (var collider in colliders)
-                {
-                    if (IsStandableCollider(collider))
-                    {
-                        colliderList.Add(collider);
-                    }
-                }
-            }
-
-
-            //----------------
 
             for (int i = 0; i < curScene.rootCount; i++)
             {
@@ -364,8 +345,7 @@ namespace OC
                 {
                     if (volume.enabled)
                     {
-                        volume.Box.isTrigger = true;
-                        if (volume.SimpleGenerateCell)
+                        //if (volume.SimpleGenerateCell)
                         {
                             var visVolume = new VisVolume(this);
                             visVolume.CellSize = volume.CellSize;
@@ -374,18 +354,18 @@ namespace OC
                             visVolume.GenerateCells();
                             volumelList.Add(visVolume);
                         }
-                        else
+                        /*else
                         {
-                            var raster = new VolumeCellRaster(new RasterSettings(Config.CellSize, Config.MinPlayAreaHeight, Config.MaxPlayAreaHeight));
+                            var raster = new VolumeCellRaster(new RasterSettings(volume.CellSize, Config.MinPlayAreaHeight, Config.MaxPlayAreaHeight));
                             raster.AddVolume(volume.Box.bounds.min, volume.Box.bounds.max);
                             var cells = raster.ComputeVolumeCells(colliderList, Util.Progress);
 
                             if (cells != null && cells.Count > 0)
                             {
-                                cells = ProprocessCells(cells);
+                                cells = ProprocessCells(cells, volume.CellSize);
                                 var visVolume = new VisVolume(this);
-                                visVolume.CellSize = Config.CellSize;
-                                visVolume.aabb = bounds;
+                                visVolume.CellSize = volume.CellSize;
+                                visVolume.aabb = volume.Box.bounds;
                                 volumelList.Add(visVolume);
 
                                 foreach (var cell in cells)
@@ -395,7 +375,7 @@ namespace OC
                                     visVolume.AddCell(c);
                                 }
                             }
-                        }
+                        }*/
                     }
                 }
             }
@@ -404,7 +384,7 @@ namespace OC
 
             return volumelList.Count > 0;
         }
-        private bool AutoComputeVolumeCells()
+        private bool AutoComputeVolumeCells(string Name)
         {
             Scene curScene = SceneManager.GetSceneByName(Name);
             GameObject[] objs = curScene.GetRootGameObjects();
@@ -428,7 +408,7 @@ namespace OC
             }
             bounds.Expand(new Vector3(5.0f, 5.0f, 5.0f));
 
-            
+
             Debug.LogFormat("Total Raster Collider Count {0}", colliderList.Count);
 
             var success = true;
@@ -439,7 +419,7 @@ namespace OC
 
                 if (cells != null && cells.Count > 0)
                 {
-                    cells = ProprocessCells(cells);
+                    cells = ProprocessCells(cells, Config.CellSize);
                     var visVolume = new VisVolume(this);
                     visVolume.CellSize = Config.CellSize;
                     visVolume.aabb = bounds;
@@ -462,26 +442,33 @@ namespace OC
         {
             if (CustumComputeVolumeCells() == false)
             {
-                return AutoComputeVolumeCells();
+                if (Config.PreProcess)
+                {
+                    if (Owner == null)
+                        return AutoComputeVolumeCells(Name);
+                    else
+                        return AutoComputeVolumeCells(Name) || AutoComputeVolumeCells(StreamSceneName);
+                }
+                else
+                    return AutoComputeVolumeCells(Name);
             }
             return true;
         }
 
-        private List<VolumeCell> ProprocessCells(IList<VolumeCell> cells)
+        private List<VolumeCell> ProprocessCells(IList<VolumeCell> cells, float cellSize)
         {
             List<VolumeCell> ret = new List<VolumeCell>();
             foreach(var cell in cells)
             {
-                var newCells = GenerateSquareCells(new Bounds(cell.Center, cell.Size));
+                var newCells = GenerateSquareCells(new Bounds(cell.Center, cell.Size), cellSize);
                 ret.AddRange(newCells);
             }
             Debug.Log("batch mode Total bake cell count :" + ret.Count);
             return ret;
         }
 
-        private List<VolumeCell> GenerateSquareCells(Bounds aabb)
+        private List<VolumeCell> GenerateSquareCells(Bounds aabb, float cellSize)
         {
-            float cellSize = Config.CellSize;
 
             List<VolumeCell> ret = new List<VolumeCell>();
 
@@ -514,9 +501,10 @@ namespace OC
 
             if (collider.GetComponent<OCVolume>() != null)
                 return false;
-            //var layerMask = 1 << collider.gameObject.layer;
-            //return 0 != (layerMask & UnityLayers.SceneCollidableLayerMask);
+
             return true;
+            //var layerMask = 1 << collider.gameObject.layer;
+            //return 0 != (layerMask & UnityLayers.SceneCollidableLayerMask);           
         }
 
         public void ProcessLastMultiTag(MultiTagBase tag)
@@ -553,6 +541,8 @@ namespace OC
                 renderableSet.Add(renderers);
                 tag.renderId = curMultiTagID;
                 curMultiTagID++;
+
+                tag.sceneName = Name;
 #if UNITY_EDITOR
                 EditorUtility.SetDirty(tag);
 #endif
@@ -595,12 +585,12 @@ namespace OC
         private List<MeshRenderer> GetSceneMeshes()
         {
             var meshList = new List<MeshRenderer>();
-
-            //meshList.Clear();
+        
             renderableSet.Clear();
             curMultiTagID = 0;
             UnityEngine.SceneManagement.Scene curScene = UnityEngine.SceneManagement.SceneManager.GetSceneByName(Name);
-            Debug.LogFormat("Get OC RendererObjs for Scene {0}", name);
+
+            Debug.LogFormat("Get OC RendererObjs for Scene {0}", Name);
             GameObject[] objs = curScene.GetRootGameObjects();
 
             for (int i = 0; i < curScene.rootCount; i++)
@@ -631,75 +621,17 @@ namespace OC
                     }
                 }
 
-                //terrain
-                var terrains = obj.GetComponentsInChildren<Terrain>();
-                foreach(var terrain in terrains)
-                {
-                    var terrainData = terrain.terrainData;
-                    var trees = terrainData.treeInstances;
-                    var treePrototypes = terrainData.treePrototypes;
-
-                    //var grasses = terrainData.
-                    var detailGrassProtos = terrainData.detailPrototypes;
-                    foreach(var grass in detailGrassProtos)
-                    {
-                        var gameObject = grass.prototype;
-                        var renderers = gameObject.GetComponentsInChildren<Renderer>();
-                        foreach (var renderer in renderers)
-                        {
-                            MeshRenderer mr = renderer as MeshRenderer;
-
-                            if (Util.IsValidOCRenderer(mr))
-                            {
-                                bool add = Util.TryAdd(mr, meshList);
-                                if (add)
-                                    renderableSet.Add(mr);
-
-
-                                if (Config.SoftRenderer && add)
-                                {
-                                    if (Owner == null)
-                                        treeMesh.Add(mr, mr.bounds);
-                                    else
-                                        Owner.treeMesh.Add(mr, mr.bounds);
-                                }
-
-                            }
-                        }
-                    }
-                    foreach(var tree in trees)
-                    {
-                        var index = tree.prototypeIndex;
-                        var treePrototype = treePrototypes[index];
-                        var gameObject = treePrototype.prefab;
-                        var renderers = gameObject.GetComponentsInChildren<Renderer>();
-                        foreach(var renderer in renderers)
-                        {
-                            MeshRenderer mr = renderer as MeshRenderer;
-
-                            if (Util.IsValidOCRenderer(mr))
-                            {
-                                bool add = Util.TryAdd(mr, meshList);
-                                if (add)
-                                    renderableSet.Add(mr);
-
-
-                                if (Config.SoftRenderer && add)
-                                {
-                                    if (Owner == null)
-                                        treeMesh.Add(mr, mr.bounds);
-                                    else
-                                        Owner.treeMesh.Add(mr, mr.bounds);
-                                }
-
-                            }
-                        }
-                    }
-                    
-                }
 
                 //multiTag
                 Traverse(obj);
+            }
+
+            for (int i = 0; i < curScene.rootCount; i++)
+            {
+                GameObject obj = objs[i];
+
+                if (!obj.activeInHierarchy || !obj.activeSelf)
+                    continue;
 
                 //lod meshes                
                 var groups = obj.GetComponentsInChildren<LODGroup>();
@@ -726,6 +658,18 @@ namespace OC
                         renderableSet.Add(lodMeshes);
                 }
 
+
+            }
+
+            for (int i = 0; i < curScene.rootCount; i++)
+            {
+                GameObject obj = objs[i];
+
+                if (!obj.activeInHierarchy || !obj.activeSelf)
+                    continue;
+
+                MeshRenderer[] meshes = obj.GetComponentsInChildren<MeshRenderer>();
+
                 //no lod group          
                 for (int j = 0; j < meshes.Length; j++)
                 {
@@ -734,7 +678,7 @@ namespace OC
                     if (Util.IsValidOCRenderer(mr))
                     {
                         bool add = Util.TryAdd(mr, meshList);
-                        if (add )
+                        if (add)
                             renderableSet.Add(mr);
 
 
@@ -750,6 +694,109 @@ namespace OC
                 }
             }
 
+
+            if (Config.PreProcess && Owner != null)
+                curScene = SceneManager.GetSceneByName(StreamSceneName);           
+
+            Debug.LogFormat("Get OC RendererObjs for Scene {0}", StreamSceneName);
+            objs = curScene.GetRootGameObjects();
+
+            for (int i = 0; i < curScene.rootCount; i++)
+            {
+                GameObject obj = objs[i];
+
+                if (!obj.activeInHierarchy || !obj.activeSelf)
+                    continue;
+
+                //重置ID
+                MeshRenderer[] meshes = obj.GetComponentsInChildren<MeshRenderer>();
+                for (int j = 0; j < meshes.Length; j++)
+                {
+                    var r = meshes[j];
+                    if (r != null)
+                    {
+                        var com = r.gameObject.GetComponent<GameObjectID>();
+                        if (com != null)
+                            com.Reset();
+                        else
+                        {
+                            if (Util.IsValidOCRenderer(r))
+                            {
+                                com = r.gameObject.AddComponent<GameObjectID>();
+                                com.Reset();
+                            }
+                        }
+                    }
+                }
+                //multiTag
+                Traverse(obj);
+            }
+
+            for (int i = 0; i < curScene.rootCount; i++)
+            {
+                GameObject obj = objs[i];
+                
+                if (!obj.activeInHierarchy || !obj.activeSelf)
+                    continue;
+
+                //lod meshes                
+                var groups = obj.GetComponentsInChildren<LODGroup>();
+                List<MeshRenderer> lodMeshes = new List<MeshRenderer>();
+                for (int j = 0; j < groups.Length; j++)
+                {
+                    var group = groups[j];
+                    lodMeshes.Clear();
+                    var lods = group.GetLODs();
+                    for (int k = 0; k < lods.Length; k++)
+                    {
+                        var lod = lods[k];
+                        for (int l = 0; l < lod.renderers.Length; l++)
+                        {
+                            var mesh = lod.renderers[l] as MeshRenderer;
+                            if (Util.IsValidOCRenderer(mesh))
+                            {
+                                //lodMeshes.Add(mesh);
+                                Util.TryAdd(mesh, lodMeshes);
+                            }
+                        }
+                    }
+                    if (lodMeshes.Count > 0)
+                        renderableSet.Add(lodMeshes);
+                }
+            }
+
+            for (int i = 0; i < curScene.rootCount; i++)
+            {
+                GameObject obj = objs[i];
+
+                if (!obj.activeInHierarchy || !obj.activeSelf)
+                    continue;
+
+                MeshRenderer[] meshes = obj.GetComponentsInChildren<MeshRenderer>();            
+
+                //no lod group          
+                for (int j = 0; j < meshes.Length; j++)
+                {
+                    MeshRenderer mr = meshes[j];
+
+                    if (Util.IsValidOCRenderer(mr))
+                    {
+                        bool add = Util.TryAdd(mr, meshList);
+                        if (add)
+                            renderableSet.Add(mr);
+
+
+                        if (Config.SoftRenderer && add)
+                        {
+                            if (Owner == null)
+                                treeMesh.Add(mr, mr.bounds);
+                            else
+                                Owner.treeMesh.Add(mr, mr.bounds);
+                        }
+
+                    }
+                }
+            }
             return meshList;
         }
 
@@ -808,10 +855,13 @@ namespace OC
                 Util.Progress("生成ObjectId", "获取所有Mesh Render ...", 0.0f);
             }            
 
-            var meshList = GetSceneMeshes();            
-            
-            if(Config.mergeObjectID == false)
+            var meshList = GetSceneMeshes();
+
+            if (Config.mergeObjectID == false)
+            {
+                renderableSet.RemoveEmptyRenerableObject();
                 return;
+            }
       
             for (int i = 0; i < meshList.Count; i++)
             {
@@ -841,7 +891,7 @@ namespace OC
                 Util.Progress("生成ObjectId", "删除无效对象", 0.0f);
             }
 
-            renderableSet.RemoveEmptyRenerableObject();;
+            renderableSet.RemoveEmptyRenerableObject();
         }
 
         private bool MergeCondition(MeshRenderer from, MeshRenderer to)
@@ -934,7 +984,15 @@ namespace OC
                 Debug.LogFormat("Open Scene {0}", Name);
                 EditorSceneManager.OpenScene(String.Format("{0}/{1}.unity", Path, Name), mode);
             }
-            
+
+            if (Config.PreProcess && Owner != null)
+            {
+                if (!SceneManager.GetSceneByName(StreamSceneName).isLoaded)
+                {
+                    Debug.LogFormat("Open stream Scene {0}", StreamSceneName);
+                    EditorSceneManager.OpenScene(String.Format("{0}/{1}.unity", StreamPath, StreamSceneName), mode);
+                }
+            }
             UnityEngine.Resources.UnloadUnusedAssets();
         }
 
@@ -949,6 +1007,15 @@ namespace OC
             if (scene.isLoaded)
             {
                 EditorSceneManager.CloseScene(scene, true);
+            }
+
+            if(Config.PreProcess && Owner != null)
+            {
+                scene = SceneManager.GetSceneByName(StreamSceneName);
+                if (scene.isLoaded)
+                {
+                    EditorSceneManager.CloseScene(scene, true);
+                }
             }
         }
 
@@ -989,10 +1056,17 @@ namespace OC
             Scene scene = SceneManager.GetSceneByName(Name);
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
+
+            if(Config.PreProcess && Owner != null)
+            {
+                scene = SceneManager.GetSceneByName(StreamSceneName);
+                EditorSceneManager.MarkSceneDirty(scene);
+                EditorSceneManager.SaveScene(scene);
+            }
         }
 
         public bool SaveData()
-        {
+        {            
             bool cancelled = false;
             using (var writer = new OCDataWriter(GetOCDataFilePath()))
             {
@@ -1037,7 +1111,7 @@ namespace OC
             string scenePath = UnityEditor.SceneManagement.EditorSceneManager.GetSceneByName(Name).path;
             if (scenePath == null)
             {
-                Debug.LogError("GetOCDataFilePath: scenePath is null! " + Name);
+                Debug.LogError("batch mode GetOCDataFilePath: scenePath is null! " + Name);
                 return "";
             }
             return scenePath.Replace(".unity", OCDataFileSuffix);
@@ -1066,9 +1140,9 @@ namespace OC
             {
                 tree = new BoundsOctree<Cell>();
                 LoadBlock(ocReader, blockIndex);
-                GerneraterRenderableObjs();
+                RuntimeGetRenderableObjs();
             }
-
+       
         }
 
 #if UNITY_EDITOR
@@ -1079,10 +1153,9 @@ namespace OC
             {
                 tree = new BoundsOctree<Cell>();
                 LoadBlock(ocReader, 0);
-              
-
-                GerneraterRenderableObjs();
+                RuntimeGetRenderableObjs();
             }
+            
         }
 #endif
 
@@ -1092,9 +1165,9 @@ namespace OC
             {
                 tree = new BoundsOctree<Cell>();
                 LoadBlock(ocReader, 0);
-              
-                GerneraterRenderableObjs();
+                RuntimeGetRenderableObjs();
             }
+            
         }
 
         private void LoadBlock(OCDataReader ocReader, int blockIndex)
@@ -1147,42 +1220,68 @@ namespace OC
             {
                 var meshRenders = go.GetComponentsInChildren<MeshRenderer>();
 
-                foreach (var renderer in meshRenders)
+                if (meshRenders.Length > 0)
                 {
-                    //if(IsOpaqueRenderer(renderer))
-                        renderableSet.Add(renderId, renderer);
+                    foreach (var renderer in meshRenders)
+                    { 
+                        renderableSet.RuntimeAdd(renderId, renderer);
+                    }                  
                 }
             }
             else
             {
-                Debug.LogWarningFormat("The render id for loaded gameobject {0} is invalid!", go.name);
+                Debug.LogWarningFormat("OC The render id for loaded gameobject {0} is invalid!", go.name);
             }
         }
         public override void OnGameObjectUnload(GameObject go, int renderId)
         {
             if (renderId >= 0)
             {
-                var meshRenders = go.GetComponentsInChildren<MeshRenderer>();
-                foreach (var renderer in meshRenders)
-                {
-                    renderableSet.Remove(renderer);
-                }
+                renderableSet.RuntimeRemove(renderId);
+                //var meshRenders = go.GetComponentsInChildren<MeshRenderer>();
+                //if (meshRenders.Length > 0)
+                //{
+                    //foreach (var renderer in meshRenders)
+                    //{
+                        //renderableSet.Remove(renderer);
+                        //renderableSet.RuntimeRemove();
+
+                    //}                 
+                //}
             }
             else
             {
-                Debug.LogWarningFormat("The render id for unloading gameobject {0} is invalid!", go.name);
+                Debug.LogWarningFormat("OC The render id for unloading gameobject {0} is invalid!", go.name);
             }
         }
 
-        public void GerneraterRenderableObjs()
+        
+
+        public void RuntimeGetRenderableObjs()
         {
-            renderableSet.Clear();
+            if (MaxGameObjectIDCount == InvalidID)
+                return;
+
+            renderableSet.Resize(MaxGameObjectIDCount);
+            
             //var coms = GameObject.FindObjectsOfType<GameObjectID>();
             Scene scene = SceneManager.GetSceneByName(Name);
+            //if(Config.PreProcess && Owner != null)
+            //{
+                //scene = SceneManager.GetSceneByName(StreamSceneName);
+            //}
+
+            if (scene.isLoaded == false)
+                return;
+
             for (int k = 0; k < scene.rootCount; k++)
             {
                 GameObject[] objs = scene.GetRootGameObjects();
                 GameObject go = objs[k];
+
+                if (go == null && go.activeInHierarchy == false)
+                    continue;
+
                 var coms = go.GetComponentsInChildren<GameObjectID>();
 
                 for (int i = 0; i < coms.Length; i++)
@@ -1190,16 +1289,46 @@ namespace OC
                     var guid = coms[i].GUID;
 
                     if(guid >= 0)
-                        renderableSet.Add(guid, coms[i].gameObject.GetComponent<MeshRenderer>());
+                        renderableSet.RuntimeAdd(guid, coms[i].gameObject.GetComponent<MeshRenderer>());
                 }
             }
 
-            renderableSet.Sort();
-           
-        }
-        public RenderableObj GetRenderableObject(int id)
-        {
-            return renderableSet.GetByGuid(id);
+            //--------------
+            if (Owner == null)
+                return;
+
+            scene = SceneManager.GetSceneByName("ClientScene");
+            if (scene.isLoaded == false)
+                return;
+
+            for (int k = 0; k < scene.rootCount; k++)
+            {
+                GameObject[] objs = scene.GetRootGameObjects();
+                GameObject go = objs[k];
+
+                if (go.name != "StreamingRoot")
+                    continue;
+
+                if (go == null && go.activeInHierarchy == false)
+                    continue;
+
+                var tags = go.GetComponentsInChildren<MultiTagBase>();
+
+                for (int i = 0; i < tags.Length; i++)
+                {
+                    var tag = tags[i];
+                    if (tag.sceneName == Name)
+                    {
+                        var guid = tag.renderId;
+                        if (guid >= 0)
+                        {
+                            var coms = tag.gameObject.GetComponentsInChildren<GameObjectID>();
+                            foreach(var com in coms)
+                                renderableSet.RuntimeAdd(guid, com.GetComponent<MeshRenderer>());
+                        }
+                    }
+                }
+            }
         }
 
         public RenderableObj GetRuntimeOCObject(int id)
@@ -1212,6 +1341,11 @@ namespace OC
             renderableSet.SetRenderableObjectVisible(obj, vis);
         }
 
+        public RenderableObj GetRenderableObject(int id)
+        {
+            return renderableSet.GetByGuid(id);
+        }
+
         public RenderableObj GetRenderableObjectByMeshRenderer(MeshRenderer mesh)
         {
             return renderableSet.GetByMeshRenderer(mesh);
@@ -1219,15 +1353,17 @@ namespace OC
 
         public Cell GetCurrentCell(Vector3 pos)
         {
-            Cell cell = null;
-            foreach (var visVolume in volumelList)
+            Cell ret = null;
+
+            if(tree != null)
+                tree.GetColliding(ref ret, pos);
+            if (ret != null)
             {
-                cell = visVolume.GetCell(pos);
-                if(cell!= null)
-                     break;
+                if (ret.parent != null)
+                    ret = ret.parent;
             }
 
-            return cell;
+            return ret;          
         }
 
         public void CopyOCDataTo(string temporaryContainer)
@@ -1251,7 +1387,7 @@ namespace OC
             }
             else
             {
-                Debug.LogErrorFormat("OC data file {0} does not exist!", filePath);
+                Debug.LogErrorFormat("batch mode OC data file {0} does not exist!", filePath);
             }
 
         }

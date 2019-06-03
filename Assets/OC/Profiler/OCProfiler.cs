@@ -8,7 +8,7 @@ using System.Threading;
 
 namespace OC.Profiler
 {
-    internal static class OCProfiler
+    public class OCProfiler
     {
         [ThreadStatic]
         private static bool _isInitialized;

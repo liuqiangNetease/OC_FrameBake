@@ -37,23 +37,6 @@ namespace OC
         {
         }
 
-        public void Save()
-        {
-//            using (BinaryWriter w = new BinaryWriter(File.Open(OC.Config.savePath + Name + ".oc", FileMode.Create)))
-//            {
-//                OCDataWrite writer = new OCDataWrite(w);
-//
-//                writer.Write(_tilesX );
-//                writer.Write(_tilesY);
-//                writer.Write(_tileWidth);
-//                writer.Write(_tileHeight);
-//                writer.Write(_left);
-//                writer.Write(_bottom);
-//
-//            }
-
-        }
-
         public void SetWorldLimits(int left, int right, int bottom, int top, int tilesX, int tilesY)
         {
             _left = left;
