@@ -376,7 +376,7 @@ namespace OC
                 }
             }
 
-            MergeOCData(ocDatas);
+			MergeOCData(ocDatas);
         }
 
         private byte[] GetDataFrom(string filePath)
@@ -399,14 +399,18 @@ namespace OC
             return null;
         }
 
-        private void MergeOCData(byte[ , ][] ocDatas)
+        private void MergeOCData( byte[ , ][] ocDatas)
         {
             var filePath = GetOCDataFilePath();
+
+            Load();
+
             try
             {
                 Debug.LogFormat("Merge OC Data for MultiScene Name Pattern {0}", NamePattern);
-                using (var writer = new OCDataWriter(filePath, _tileDimension))
-                {
+                using (var writer = new OCDataWriter(filePath, _tileDimension,_maxIDs))
+                {					
+			
                     for (int x = 0; x < _tileDimension; ++x)
                     {
                         for (int y = 0; y < _tileDimension; ++y)

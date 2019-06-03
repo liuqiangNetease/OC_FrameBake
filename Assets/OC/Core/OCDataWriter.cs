@@ -22,6 +22,7 @@ namespace OC
 
         private OCStreamer _ocStreamer;
 
+		private int[,] _maxIDs;
         private int _dimension;
         private int _maxBlockCount;
         private int _blockCount;
@@ -33,7 +34,7 @@ namespace OC
             get { return ((float) _compressLength) / _originLength; }
         }
 
-        public OCDataWriter(String filePath, int dimension = 1)
+		public OCDataWriter(String filePath, int dimension = 1, int[,] maxIDs = null)
         {
             _stream = new MemoryStream(10 * 1024 * 1024);
             _writer = new BinaryWriter(_stream);
@@ -46,14 +47,30 @@ namespace OC
             _maxBlockCount = dimension * dimension;
             _blockCount = 0;
 
+            _maxIDs = maxIDs;
+
             WriteOCDataHeader();
         }
+
+		
 
         private void WriteOCDataHeader()
         {
             _fileStream.Write(BitConverter.GetBytes(OCDataHeader.Magic), 0, 4);
+
             _fileStream.Write(BitConverter.GetBytes(_dimension), 0, 4);
+
+
+            if (_maxIDs != null)
+            {
+                for (int i = 0; i < _dimension; i++)
+                    for (int j = 0; j < _dimension; j++)
+                        _fileStream.Write(BitConverter.GetBytes(_maxIDs[i, j]), 0, 4);
+            }
+			
+
             var count = _maxBlockCount * 8; //sizeof(OCDataBlock) == 8 
+
             for (int i = 0; i < count; ++i)
             {
                 _fileStream.WriteByte(0);
@@ -66,7 +83,10 @@ namespace OC
         {
             var curPos = _fileStream.Position;
 
-            int blockPosition = 8 + blockIndex * 8; //sizeof(OCDataBlock) == 8 
+			int blockPosition = 8 + blockIndex * 8;
+	
+			blockPosition = 8 + sizeof(int) * _dimension * _dimension + blockIndex * 8; //sizeof(OCDataBlock) == 8 
+
             _fileStream.Position = blockPosition;
             _fileStream.Write(BitConverter.GetBytes(curPos), 0, sizeof(int));
             _fileStream.Write(BitConverter.GetBytes(length), 0, sizeof(int));

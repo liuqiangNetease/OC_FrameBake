@@ -75,13 +75,23 @@ namespace OC
                 if (magic == OCDataHeader.Magic)
                 {
                     var dimension = BitConverter.ToInt32(_data, 4);
+
+                    if (dimension > 1)
+                    {
+                        for (int i = 0; i < dimension * dimension; i++)
+                            BitConverter.ToInt32(_data, 4 * i + 8);
+                    }
+                    
                     _dataHeader = new OCDataHeader(dimension);
 
                     for (int blockIndex = 0; blockIndex < dimension * dimension; ++blockIndex)
                     {
                         var block = new OCDataBlock();
+                        
                         block.Offset = BitConverter.ToInt32(_data, 8 * blockIndex + 8);
                         block.Length = BitConverter.ToInt32(_data, 8 * blockIndex + 12);
+                    
+                      
                         _dataHeader[blockIndex] = block;
                     }
 

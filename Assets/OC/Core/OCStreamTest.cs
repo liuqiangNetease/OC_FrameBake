@@ -44,7 +44,7 @@ namespace OC
 
                 streamScene = new MultiScene(config.GetSceneAssetPath(), config.SceneNamePattern, TileDimension, config.TileSize, data);
 
-				streamScene.Load ();
+				//streamScene.Load ();
               
                 foreach (var index in config.indices)
                 {
