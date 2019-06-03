@@ -444,10 +444,11 @@ namespace OC
             {
                 if (Config.PreProcess)
                 {
-                    if (Owner == null)
-                        return AutoComputeVolumeCells(Name);
-                    else
-                        return AutoComputeVolumeCells(Name) || AutoComputeVolumeCells(StreamSceneName);
+					if (Owner == null)
+						return AutoComputeVolumeCells (Name);
+					else
+						return false;
+                        //return AutoComputeVolumeCells(Name) || AutoComputeVolumeCells(StreamSceneName);
                 }
                 else
                     return AutoComputeVolumeCells(Name);
@@ -1140,8 +1141,10 @@ namespace OC
             {
                 tree = new BoundsOctree<Cell>();
                 LoadBlock(ocReader, blockIndex);
-                RuntimeGetRenderableObjs();
+                
             }
+
+			RuntimeGetRenderableObjs();
        
         }
 
@@ -1153,8 +1156,10 @@ namespace OC
             {
                 tree = new BoundsOctree<Cell>();
                 LoadBlock(ocReader, 0);
-                RuntimeGetRenderableObjs();
+                
             }
+
+			RuntimeGetRenderableObjs();
             
         }
 #endif
@@ -1165,8 +1170,9 @@ namespace OC
             {
                 tree = new BoundsOctree<Cell>();
                 LoadBlock(ocReader, 0);
-                RuntimeGetRenderableObjs();
+                
             }
+			RuntimeGetRenderableObjs();
             
         }
 
@@ -1259,6 +1265,10 @@ namespace OC
 
         public void RuntimeGetRenderableObjs()
         {
+			if (Owner != null)
+			{	
+				_maxGameObjectIDCount = (Owner as MultiScene).GetMaxGUID (TileIndex.x, TileIndex.y);
+			}
             if (MaxGameObjectIDCount == InvalidID)
                 return;
 
@@ -1279,7 +1289,7 @@ namespace OC
                 GameObject[] objs = scene.GetRootGameObjects();
                 GameObject go = objs[k];
 
-                if (go == null && go.activeInHierarchy == false)
+                if ( go.activeInHierarchy == false)
                     continue;
 
                 var coms = go.GetComponentsInChildren<GameObjectID>();
@@ -1297,6 +1307,33 @@ namespace OC
             if (Owner == null)
                 return;
 
+			#if UNITY_EDITOR
+			Scene streamScene = SceneManager.GetSceneByName(StreamSceneName);		
+
+			if (streamScene.isLoaded == false)
+				return;
+
+			for (int k = 0; k < streamScene.rootCount; k++)
+			{
+				GameObject[] objs = streamScene.GetRootGameObjects();
+				GameObject go = objs[k];
+
+				if (go.activeInHierarchy == false)
+					continue;
+
+				var coms = go.GetComponentsInChildren<GameObjectID>();
+
+				for (int i = 0; i < coms.Length; i++)
+				{
+					var guid = coms[i].GUID;
+
+					if(guid >= 0)
+						renderableSet.RuntimeAdd(guid, coms[i].gameObject.GetComponent<MeshRenderer>());
+				}
+			}
+
+			#endif
+
             scene = SceneManager.GetSceneByName("ClientScene");
             if (scene.isLoaded == false)
                 return;
@@ -1309,7 +1346,7 @@ namespace OC
                 if (go.name != "StreamingRoot")
                     continue;
 
-                if (go == null && go.activeInHierarchy == false)
+                if (go.activeInHierarchy == false)
                     continue;
 
                 var tags = go.GetComponentsInChildren<MultiTagBase>();

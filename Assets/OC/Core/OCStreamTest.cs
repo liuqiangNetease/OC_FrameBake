@@ -43,11 +43,33 @@ namespace OC
                 }
 
                 streamScene = new MultiScene(config.GetSceneAssetPath(), config.SceneNamePattern, TileDimension, config.TileSize, data);
+
+				streamScene.Load ();
               
                 foreach (var index in config.indices)
                 {
-                    if(index.x == _tileX && index.y == _tileY)
-                        streamScene.Load(index.x, index.y);
+					if (index.x == _tileX && index.y == _tileY) 
+					{
+						int tileDimension = config.TileDimension;
+						for (int x = 0; x < tileDimension; ++x)
+						{
+							for (int y = 0; y < tileDimension; ++y)
+							{
+								if (index.x >= 0 && index.y >= 0)
+								{
+									if (Math.Abs(x - index.x) > 1 || Math.Abs(y - index.y) > 1)
+									{
+										continue;
+									}
+								}
+
+								//sceneNames.Add(String.Format("{0}/{1}.unity", config.GetSceneAssetPath(),
+									//String.Format(config.SceneNamePattern, x, y)));
+								streamScene.Load(x, y);
+							}
+						}
+						//streamScene.Load (index.x, index.y);
+					}
                 }
             }          
         }
