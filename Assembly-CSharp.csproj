@@ -102,18 +102,21 @@
      <Compile Include="Assets\OC\Stream\StreamProcessor.cs" />
      <Compile Include="Assets\OC\Stream\StreamUnit.cs" />
      <Compile Include="Assets\OCBuild\OCBuild.cs" />
+     <None Include="Assets\Assets\ArtPlugins\OC\Resources\OCVisColorNormal.shader" />
+     <None Include="Assets\Assets\Maps\maps\0001\Scenes\002 ocxoc_oc.txt" />
      <None Include="Assets\Assets\Maps\maps\S001\Scenes\S001_oc.txt" />
-     <None Include="Assets\Material\OCVisColorNormal.shader" />
-     <None Include="Assets\Material\OCVisCompute.compute" />
+     <None Include="Assets\Assets\ArtPlugins\OC\Resources\OCVisColor.shader" />
      <None Include="Assets\LQ\Scenes\sTest_oc_patch.txt" />
-     <None Include="Assets\Material\OCVisColor.shader" />
      <None Include="Assets\Assets\Maps\maps\S001\Scenes\S001_oc_patch.txt" />
      <None Include="Assets\OC\CMakeLists.txt" />
      <None Include="Assets\Maps\maps\S001\Scenes\S001_oc_patch.txt" />
      <None Include="Assets\LQ\Scenes\singleTest_oc.txt" />
      <None Include="Assets\LQ\Scenes\sTest_oc.txt" />
+     <None Include="Assets\Assets\Maps\maps\0001\Scenes\002 4x3_oc_patch.txt" />
      <None Include="Assets\Assets\ArtPlugins\OC\Resources\OCVisCompute.compute" />
+     <None Include="Assets\Assets\Maps\maps\0001\Scenes\002 4x3_oc.txt" />
      <None Include="Assets\Maps\maps\S001\Scenes\S001_oc.txt" />
+     <None Include="Assets\Assets\ArtPlugins\OC\Resources\OCAlphaBlend.shader" />
  <Reference Include="UnityEngine.UI">
  <HintPath>C:/Program Files/Unity/Editor/Data/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>
  </Reference>
